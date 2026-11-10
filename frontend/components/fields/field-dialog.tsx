@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -19,17 +19,24 @@ import { useFormat } from "@/lib/hooks/use-format";
 import type { TKey } from "@/lib/i18n";
 import { useT } from "@/providers/i18n-provider";
 
-const schema = z.object({
-  name: z.string().trim().min(2).max(120),
-  region: z.string().trim().max(120),
-  area: z.coerce.number().positive().max(250000),
-  crop_type: z.enum(CROP_TYPES),
-  latitude: z.coerce.number().min(-90).max(90),
-  longitude: z.coerce.number().min(-180).max(180),
-  planting_date: z.string(),
-});
-type Input_ = z.input<typeof schema>;
-type Values = z.output<typeof schema>;
+// Same limits as the API (FieldIn), so the form never sends something the server rejects.
+const MAX_FIELD_HA = 100_000;
+
+/** `maxArea` is in the units the user types in: hectares or acres. */
+function makeSchema(maxArea: number) {
+  return z.object({
+    name: z.string().trim().min(2).max(120),
+    region: z.string().trim().max(120),
+    area: z.coerce.number().positive().max(maxArea),
+    crop_type: z.enum(CROP_TYPES),
+    latitude: z.coerce.number().min(-90).max(90),
+    longitude: z.coerce.number().min(-180).max(180),
+    planting_date: z.string().refine((v) => !v || Number(v.slice(0, 4)) <= new Date().getFullYear() + 1),
+  });
+}
+type Schema = ReturnType<typeof makeSchema>;
+type Input_ = z.input<Schema>;
+type Values = z.output<Schema>;
 
 export function FieldDialog({ open, onOpenChange, farm, field }: {
   open: boolean; onOpenChange: (open: boolean) => void; farm: Farm; field?: Field;
@@ -37,6 +44,8 @@ export function FieldDialog({ open, onOpenChange, farm, field }: {
   const { t } = useT();
   const format = useFormat();
   const save = useSaveField(farm.id);
+  const maxArea = Math.floor(convertArea(MAX_FIELD_HA, format.units));
+  const schema = useMemo(() => makeSchema(maxArea), [maxArea]);
   const { register, control, reset, handleSubmit, formState: { errors, isSubmitting } } =
     useForm<Input_, unknown, Values>({ resolver: zodResolver(schema) });
 
@@ -80,7 +89,7 @@ export function FieldDialog({ open, onOpenChange, farm, field }: {
           </FormField>
           <div className="grid gap-4 sm:grid-cols-2">
             <FormField id="area" label={`${t("fields.area")} (${t(format.units === "metric" ? "unit.ha" : "unit.ac")})`}
-              error={errors.area && t("validation.area")}>
+              error={errors.area && t("validation.area", { max: format.area(MAX_FIELD_HA) })}>
               <Input id="area" type="number" step="0.1" min="0" aria-invalid={!!errors.area} {...register("area")} />
             </FormField>
             <FormField id="crop" label={t("fields.crop")}>
@@ -98,8 +107,8 @@ export function FieldDialog({ open, onOpenChange, farm, field }: {
             <FormField id="region" label={t("fields.region")}>
               <Input id="region" {...register("region")} />
             </FormField>
-            <FormField id="planting" label={t("fields.planted")}>
-              <Input id="planting" type="date" {...register("planting_date")} />
+            <FormField id="planting" label={t("fields.planted")} error={errors.planting_date && t("validation.planted")}>
+              <Input id="planting" type="date" aria-invalid={!!errors.planting_date} {...register("planting_date")} />
             </FormField>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
-  convertArea, convertSpeed, convertTemp, elapsed, healthFromNdvi, initials, kkDate, ndviColor,
+  convertArea, convertSpeed, convertTemp, elapsed, healthFromNdvi, initials, interiorGaps, kkDate, ndviColor,
 } from "./format.ts";
 
 test("area conversion", () => {
@@ -26,10 +26,35 @@ test("health thresholds match the backend", () => {
 });
 
 test("NDVI colours clamp at the ends of the scale", () => {
-  assert.equal(ndviColor(-1), "rgb(217,87,87)");
-  assert.equal(ndviColor(0.2), "rgb(217,87,87)");
+  assert.equal(ndviColor(-1), "rgb(142,42,42)");
+  assert.equal(ndviColor(0.15), "rgb(142,42,42)");  assert.equal(ndviColor(0.85), "rgb(23,76,56)");
   assert.equal(ndviColor(0.95), "rgb(23,76,56)");
-  assert.equal(ndviColor(0.5), "rgb(240,234,216)");
+});
+
+test("NDVI colours use the app's state colours", () => {
+  assert.equal(ndviColor(0.35), "rgb(217,87,87)"); // critical red
+  assert.equal(ndviColor(0.45), "rgb(232,162,58)"); // attention amber
+  const rgb = (value: number) => ndviColor(value).match(/\d+/g)!.map(Number);
+  const [r, g] = rgb(0.75);
+  assert.ok(g > r, "healthy values are green");
+});
+
+test("NDVI colours keep changing inside one state", () => {
+  // A field that sits entirely in "needs attention" must still show its weaker spots.
+  assert.notEqual(ndviColor(0.42), ndviColor(0.5));
+  assert.notEqual(ndviColor(0.5), ndviColor(0.58));
+});
+
+test("NDVI gaps inside the field are told apart from cells outside it", () => {
+  const _ = null;
+  const values = [
+    [_, 0.5, 0.5, _],
+    [_, 0.5, _, 0.5],
+    [0.5, 0.5, 0.5, 0.5],
+  ];
+  // (1,2) is surrounded by readings: a dropout. The others touch the edge: outside the field.
+  assert.deepEqual([...interiorGaps(values)], ["1,2"]);
+  assert.equal(interiorGaps([]).size, 0);
 });
 
 test("Kazakh dates use our own month names", () => {

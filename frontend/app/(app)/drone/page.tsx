@@ -161,8 +161,10 @@ function Content({ farm }: { farm: Farm }) {
       client.invalidateQueries({ queryKey: ["farm"] });
       client.invalidateQueries({ queryKey: ["notifications"] });
       client.invalidateQueries({ queryKey: ["field"] });
+      // Show what the flight produced instead of silently going back to planning.
+      router.replace(`/drone?mission=${current.id}`, { scroll: false });
     }
-  }, [current, client, t]);
+  }, [current, client, t, router]);
 
   const drone = drones.data?.find((d) => d.id === droneId) ?? drones.data?.[0];
   const selectedFieldId = fieldId ?? fields.data?.[0]?.id;

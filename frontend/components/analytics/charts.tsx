@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 
 import type { Analytics, NdviGrid } from "@/lib/api/types";
-import { ndviColor } from "@/lib/format";
+import {
+  NDVI_ATTENTION, NDVI_HEALTHY, NDVI_SCALE, healthFromNdvi, interiorGaps, ndviColor, ndviLegendGradient,
+} from "@/lib/format";
 import { useFormat } from "@/lib/hooks/use-format";
+import type { TKey } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 import { useT } from "@/providers/i18n-provider";
 
 // Validated for colour-blind separation on white. Assigned by field order, never by rank.
@@ -116,26 +120,59 @@ export function CountBars({ data }: { data: Analytics["anomalies_by_type"] }) {
   );
 }
 
+// Striped grey for cells inside the field that have no reading, so they don't look like holes.
+const NO_READING = "repeating-linear-gradient(45deg, #CFD7CC 0 2px, #EEF1EC 2px 4px)";
+
+const legendPosition = (value: number) =>
+  `${((value - NDVI_SCALE.min) / (NDVI_SCALE.max - NDVI_SCALE.min)) * 100}%`;
+
 export function NdviHeatmap({ grid }: { grid: NdviGrid }) {
   const { t } = useT();
   const format = useFormat();
-  const [hover, setHover] = useState<number | null>(null);
+  // undefined: nothing under the pointer; null: a cell without a reading.
+  const [hover, setHover] = useState<number | null | undefined>(undefined);
+  const gaps = useMemo(() => interiorGaps(grid.values), [grid.values]);
+
+  const readout = hover === undefined ? t("analytics.hoverHint")
+    : hover === null ? t("analytics.noReading")
+    : `NDVI ${format.ndvi(hover)} · ${t(`health.${healthFromNdvi(hover)}` as TKey)}`;
+
   return (
     <div>
       <div className="grid gap-px" style={{ gridTemplateColumns: `repeat(${grid.cols}, minmax(0, 1fr))` }}
         role="img" aria-label={t("analytics.ndviMapAlt", { field: grid.field_name, mean: format.ndvi(grid.mean) })}
-        onMouseLeave={() => setHover(null)}>
-        {grid.values.flatMap((row, y) => row.map((value, x) => (
-          <div key={`${x}-${y}`} className="aspect-square"
-            style={{ background: value === null ? "transparent" : ndviColor(value) }}
-            onMouseEnter={() => setHover(value)} />
-        )))}
+        onMouseLeave={() => setHover(undefined)}>
+        {grid.values.flatMap((row, y) => row.map((value, x) => {
+          const gap = value === null && gaps.has(`${y},${x}`);
+          const inField = value !== null || gap;
+          return (
+            <div key={`${x}-${y}`}
+              className={cn("aspect-square", inField && "hover:relative hover:z-10 hover:outline-2 hover:outline-foreground")}
+              style={{ background: value !== null ? ndviColor(value) : gap ? NO_READING : "transparent" }}
+              onMouseEnter={() => setHover(inField ? value : undefined)} />
+          );
+        }))}
       </div>
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+      <div className="mt-3 flex items-center gap-3 text-sm">
         <span className="text-muted-foreground">{t("analytics.low")}</span>
-        <span className="h-2.5 w-40 rounded-sm" style={{ background: `linear-gradient(90deg, ${ndviColor(0.2)}, ${ndviColor(0.5)}, ${ndviColor(0.8)})` }} />
+        <div className="relative max-w-xs flex-1 pb-4">
+          <div className="h-2.5 rounded-sm" style={{ background: ndviLegendGradient() }} />
+          {[NDVI_ATTENTION, NDVI_HEALTHY].map((threshold) => (
+            <span key={threshold} className="absolute top-3.5 -translate-x-1/2 text-xs text-muted-foreground"
+              style={{ left: legendPosition(threshold) }}>
+              {format.number(threshold, 1)}
+            </span>
+          ))}
+        </div>
         <span className="text-muted-foreground">{t("analytics.high")}</span>
-        <span className="ml-auto font-medium">{hover === null ? t("analytics.hoverHint") : `NDVI ${format.ndvi(hover)}`}</span>
+      </div>
+      <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+        {gaps.size > 0 && (
+          <span className="flex items-center gap-1.5 text-muted-foreground">
+            <span className="size-3 rounded-sm" style={{ background: NO_READING }} /> {t("analytics.noReading")}
+          </span>
+        )}
+        <span className="ml-auto font-medium" aria-live="polite">{readout}</span>
       </div>
     </div>
   );

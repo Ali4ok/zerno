@@ -36,7 +36,7 @@ export const kk: Dictionary = {
 
   "validation.required": "Бұл өрісті толтырыңыз.", "validation.email": "Дұрыс email енгізіңіз.",
   "validation.name": "Кемінде 2 таңба.", "validation.password": "Кемінде 8 таңба.",
-  "validation.match": "Құпиясөздер сәйкес емес.", "validation.area": "0-ден үлкен аудан енгізіңіз.",
+  "validation.match": "Құпиясөздер сәйкес емес.", "validation.area": "0-ден үлкен және {max} аспайтын аудан енгізіңіз.", "validation.planted": "Себу күні келесі жылдан кеш болмауы керек.",
   "validation.latitude": "Ендік -90 пен 90 аралығында болуы керек.", "validation.longitude": "Бойлық -180 бен 180 аралығында болуы керек.",
 
   "landing.navFeatures": "Мүмкіндіктер", "landing.navHow": "Қалай жұмыс істейді", "landing.navTech": "Технология", "landing.navBenefits": "Артықшылықтар",
@@ -157,7 +157,7 @@ export const kk: Dictionary = {
 
   "analytics.subtitle": "Егін қалай өзгеріп жатыр және алқаптар бір-бірінен немен ерекшеленеді.", "analytics.sampleData": "Үлгі деректер",
   "analytics.sampleTip": "Демонстрация үшін жасалған. Нақты мәндерге мультиспектрлі камера қажет: NDVI қарапайым фотодан өлшенбейді.",
-  "analytics.trend": "NDVI динамикасы", "analytics.ndviMap": "NDVI картасы", "analytics.ndviMapHint": "Әр шаршы — алқаптың бір бөлігі. Қою жасыл — қалың сау егін, қызыл — әлсіз. Бос шаршылар — дерек жоқ.",
+  "analytics.trend": "NDVI динамикасы", "analytics.ndviMap": "NDVI картасы", "analytics.ndviMapHint": "Әр шаршы — алқаптың бір бөлігі. Түстер бүкіл ZERNO-дағыдай: жасыл — сау егін (0,6 және одан жоғары), сарғылт пен сары — назар аудару керек (0,4-тен 0,6-ға дейін), қызыл — өсімдіктер күйзелісте (0,4-тен төмен). Жасыл неғұрлым қою болса, егін соғұрлым қалың. Жолақты шаршылар — дерек жоқ.", "analytics.noReading": "Дерек жоқ",
   "analytics.ndviMapAlt": "NDVI картасы: {field}, орташа {mean}", "analytics.low": "Әлсіз", "analytics.high": "Сау", "analytics.hoverHint": "Мәнін көру үшін картаға апарыңыз",
   "analytics.average": "Орташа", "analytics.lowest": "Ең төмен", "analytics.highest": "Ең жоғары",
   "analytics.distribution": "Жағдайы бойынша бөлу", "analytics.distributionHint": "Жалпы аудан жағдай топтары бойынша.",

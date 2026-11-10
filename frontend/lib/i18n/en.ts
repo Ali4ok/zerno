@@ -34,7 +34,7 @@ export const en = {
 
   "validation.required": "Please fill in this field.", "validation.email": "Enter a valid email address.",
   "validation.name": "Use at least 2 characters.", "validation.password": "Use at least 8 characters.",
-  "validation.match": "The passwords don't match.", "validation.area": "Enter an area greater than 0.",
+  "validation.match": "The passwords don't match.", "validation.area": "Enter an area greater than 0 and no more than {max}.", "validation.planted": "The planting date can be no later than next year.",
   "validation.latitude": "Latitude must be between -90 and 90.", "validation.longitude": "Longitude must be between -180 and 180.",
 
   "landing.navFeatures": "Features", "landing.navHow": "How it works", "landing.navTech": "Technology", "landing.navBenefits": "Benefits",
@@ -155,7 +155,7 @@ export const en = {
 
   "analytics.subtitle": "How your crops are changing, and how fields compare.", "analytics.sampleData": "Sample data",
   "analytics.sampleTip": "Generated for this demo. Real values need a multispectral camera, because NDVI can't be measured from ordinary photos.",
-  "analytics.trend": "NDVI trend", "analytics.ndviMap": "NDVI map", "analytics.ndviMapHint": "Each square is part of the field. Dark green is dense, healthy growth. Red is weak. Blank squares have no reading.",
+  "analytics.trend": "NDVI trend", "analytics.ndviMap": "NDVI map", "analytics.ndviMapHint": "Each square is part of the field, coloured like the rest of ZERNO: green is healthy (0.6 and above), amber and yellow need attention (0.4 to 0.6), red is stressed (below 0.4). Darker green means denser crops. Striped squares have no reading.", "analytics.noReading": "No reading",
   "analytics.ndviMapAlt": "NDVI map of {field}, average {mean}", "analytics.low": "Weak", "analytics.high": "Healthy", "analytics.hoverHint": "Point at the map for a value",
   "analytics.average": "Average", "analytics.lowest": "Lowest", "analytics.highest": "Highest",
   "analytics.distribution": "Crop health distribution", "analytics.distributionHint": "Your total area split by health group.",

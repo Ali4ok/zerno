@@ -36,7 +36,7 @@ export const ru: Dictionary = {
 
   "validation.required": "Заполните это поле.", "validation.email": "Введите корректный email.",
   "validation.name": "Минимум 2 символа.", "validation.password": "Минимум 8 символов.",
-  "validation.match": "Пароли не совпадают.", "validation.area": "Укажите площадь больше 0.",
+  "validation.match": "Пароли не совпадают.", "validation.area": "Укажите площадь больше 0 и не более {max}.", "validation.planted": "Дата посева не может быть позже следующего года.",
   "validation.latitude": "Широта должна быть от -90 до 90.", "validation.longitude": "Долгота должна быть от -180 до 180.",
 
   "landing.navFeatures": "Возможности", "landing.navHow": "Как это работает", "landing.navTech": "Технологии", "landing.navBenefits": "Преимущества",
@@ -157,7 +157,7 @@ export const ru: Dictionary = {
 
   "analytics.subtitle": "Как меняются посевы и чем поля отличаются друг от друга.", "analytics.sampleData": "Пример данных",
   "analytics.sampleTip": "Создано для демонстрации. Реальные значения требуют мультиспектральной камеры: NDVI нельзя измерить по обычному фото.",
-  "analytics.trend": "Динамика NDVI", "analytics.ndviMap": "Карта NDVI", "analytics.ndviMapHint": "Каждый квадрат — часть поля. Тёмно-зелёный — густые здоровые посевы, красный — слабые. Пустые квадраты — нет данных.",
+  "analytics.trend": "Динамика NDVI", "analytics.ndviMap": "Карта NDVI", "analytics.ndviMapHint": "Каждый квадрат — часть поля. Цвета те же, что во всём ZERNO: зелёный — здоровые посевы (0,6 и выше), оранжевый и жёлтый — требует внимания (от 0,4 до 0,6), красный — растения в стрессе (ниже 0,4). Чем темнее зелёный, тем гуще посевы. Полосатые квадраты — нет данных.", "analytics.noReading": "Нет данных",
   "analytics.ndviMapAlt": "Карта NDVI: {field}, среднее {mean}", "analytics.low": "Слабо", "analytics.high": "Здорово", "analytics.hoverHint": "Наведите на карту, чтобы увидеть значение",
   "analytics.average": "Среднее", "analytics.lowest": "Минимум", "analytics.highest": "Максимум",
   "analytics.distribution": "Распределение по состоянию", "analytics.distributionHint": "Общая площадь по группам состояния.",
