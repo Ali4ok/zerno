@@ -2,7 +2,7 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  BatteryCharging, BatteryFull, BatteryLow, CheckCircle2, Home, Plane, RadioTower, Route, Satellite, ShieldAlert, XCircle,
+  BatteryCharging, BatteryFull, BatteryLow, CheckCircle2, Home, Leaf, PawPrint, Plane, RadioTower, Route, Satellite, ShieldAlert, XCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -19,10 +19,10 @@ import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import {
-  isActive, useCancelMission, useChargeDrone, useDrones, useFields, useMission, useMissions, usePlanMission,
+  isActive, useCancelMission, useChargeDrone, useDrones, useFields, useLivestock, useMission, useMissions, usePlanMission,
   useReturnHome, useStartMission,
 } from "@/lib/api/hooks";
-import type { Drone, Farm, MissionDetail } from "@/lib/api/types";
+import type { Drone, Farm, MissionDetail, MissionPurpose } from "@/lib/api/types";
 import { useFormat } from "@/lib/hooks/use-format";
 import type { TKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -67,7 +67,7 @@ function ActiveMission({ mission }: { mission: MissionDetail }) {
   const requested = returnHome.isSuccess || mission.status === "returning";
 
   return (
-    <Panel title={t("drone.activeTitle", { field: mission.field_name })} actions={<DemoBadge label={t("common.simulated")} tip={t("drone.simTip")} />}>
+    <Panel title={t(mission.purpose === "livestock" ? "drone.countTitle" : "drone.activeTitle", { field: mission.field_name })} actions={<DemoBadge label={t("common.simulated")} tip={t("drone.simTip")} />}>
       <div className="flex items-baseline justify-between">
         <span className="font-medium">{t(`drone.phase.${mission.phase ?? "takeoff"}` as TKey)}</span>
         <span className="text-2xl font-semibold">{format.number(mission.progress * 100)}%</span>
@@ -138,11 +138,13 @@ function Content({ farm }: { farm: Farm }) {
   const params = useSearchParams();
   const drones = useDrones(farm.id);
   const fields = useFields(farm.id);
+  const livestock = useLivestock(farm.id);
   const missions = useMissions(farm.id);
   const plan = usePlanMission();
 
   const [droneId, setDroneId] = useState<string>();
-  const [fieldId, setFieldId] = useState<string>();
+  const [purpose, setPurpose] = useState<MissionPurpose>(params.get("purpose") === "livestock" ? "livestock" : "survey");
+  const [fieldId, setFieldId] = useState<string | undefined>(params.get("field") ?? undefined);
   const [altitude, setAltitude] = useState(60);
   const [plannedId, setPlannedId] = useState<string | null>(null);
 
@@ -155,17 +157,24 @@ function Content({ farm }: { farm: Farm }) {
     const before = previous.current;
     previous.current = current;
     if (before && current && before.id === current.id && isActive(before) && !isActive(current)) {
-      if (current.status === "completed") toast.success(t("drone.doneToast", { field: current.field_name }));
+      if (current.status === "completed") {
+        toast.success(t(current.purpose === "livestock" ? "drone.countDoneToast" : "drone.doneToast", { field: current.field_name }));
+      }
       else toast.warning(t("drone.abortedToast", { field: current.field_name }));
       setPlannedId(null);
       client.invalidateQueries({ queryKey: ["farm"] });
       client.invalidateQueries({ queryKey: ["notifications"] });
       client.invalidateQueries({ queryKey: ["field"] });
+      // Show what the flight produced instead of silently going back to planning.
+      router.replace(`/drone?mission=${current.id}`, { scroll: false });
     }
-  }, [current, client, t]);
+  }, [current, client, t, router]);
 
   const drone = drones.data?.find((d) => d.id === droneId) ?? drones.data?.[0];
-  const selectedFieldId = fieldId ?? fields.data?.[0]?.id;
+  // For a count, only fields where some group grazes make sense.
+  const pastureIds = new Set(livestock.data?.groups.map((g) => g.field_id).filter(Boolean));
+  const options = (fields.data ?? []).filter((f) => purpose === "survey" || pastureIds.has(f.id));
+  const selectedFieldId = options.find((f) => f.id === fieldId)?.id ?? options[0]?.id;
   const shownFieldId = current && (isActive(current) || current.status === "planned") ? current.field_id : selectedFieldId;
   const field = fields.data?.find((f) => f.id === shownFieldId);
   const flying = !!current && isActive(current);
@@ -180,7 +189,7 @@ function Content({ farm }: { farm: Farm }) {
 
   const onPlan = () => {
     if (!drone || !selectedFieldId) return;
-    plan.mutate({ drone_id: drone.id, field_id: selectedFieldId, altitude_m: altitude }, {
+    plan.mutate({ drone_id: drone.id, field_id: selectedFieldId, altitude_m: altitude, purpose }, {
       onSuccess: (created) => setPlannedId(created.id),
       onError: (error) => toast.error(errorText(error, t("state.errorBody"))),
     });
@@ -206,15 +215,35 @@ function Content({ farm }: { farm: Farm }) {
               planned ? <PlannedMission mission={planned} onDone={() => setPlannedId(null)} /> : (
                 <Panel title={t("drone.plan")} hint={t("drone.planHint")}>
                   <div className="space-y-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="mission-field">{t("drone.field")}</Label>
-                      <Select value={selectedFieldId} onValueChange={setFieldId}>
-                        <SelectTrigger id="mission-field" className="w-full"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {fields.data.map((f) => <SelectItem key={f.id} value={f.id}>{f.name} · {format.area(f.area)}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    <fieldset>
+                      <legend className="mb-1.5 text-sm font-medium">{t("drone.purpose")}</legend>
+                      <div className="grid grid-cols-2 gap-2">
+                        {([["survey", Leaf], ["livestock", PawPrint]] as const).map(([value, Icon]) => (
+                          <button key={value} type="button" aria-pressed={purpose === value} onClick={() => setPurpose(value)}
+                            className={cn("rounded-md border p-2.5 text-left transition-colors hover:bg-muted",
+                              purpose === value && "border-brand-2 bg-good-tint ring-1 ring-brand-2")}>
+                            <Icon className="size-4 text-brand-2" />
+                            <span className="mt-1 block text-sm font-medium">{t(`drone.purpose.${value}` as TKey)}</span>
+                            <span className="block text-xs text-muted-foreground">{t(`drone.purpose.${value}Hint` as TKey)}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </fieldset>
+                    {options.length === 0 ? (
+                      <p className="rounded bg-muted p-3 text-sm">
+                        {t("drone.noPastures")} <Link href="/livestock" className="text-brand-2 hover:underline">{t("nav.livestock")}</Link>
+                      </p>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <Label htmlFor="mission-field">{t("drone.field")}</Label>
+                        <Select value={selectedFieldId} onValueChange={setFieldId}>
+                          <SelectTrigger id="mission-field" className="w-full"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {options.map((f) => <SelectItem key={f.id} value={f.id}>{f.name} · {format.area(f.area)}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                     <details className="rounded border px-3 py-2">
                       <summary className="cursor-pointer text-sm text-muted-foreground">{t("common.more")}</summary>
                       <div className="mt-3 space-y-1.5">
@@ -226,7 +255,7 @@ function Content({ farm }: { farm: Farm }) {
                           onChange={(e) => setAltitude(Number(e.target.value))} className="w-full accent-brand-2" />
                       </div>
                     </details>
-                    <Button className="w-full" onClick={onPlan} disabled={plan.isPending || !drone}><Route className="size-4" /> {t("drone.planRoute")}</Button>
+                    <Button className="w-full" onClick={onPlan} disabled={plan.isPending || !drone || !selectedFieldId}><Route className="size-4" /> {t("drone.planRoute")}</Button>
                   </div>
                 </Panel>
               )}
@@ -241,7 +270,9 @@ function Content({ farm }: { farm: Farm }) {
               <li key={m.id} className="flex items-center gap-3 py-2.5">
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium">{m.field_name}</span>
-                  <span className="block text-sm text-muted-foreground">{t(`mission.${m.status}` as TKey)} · {format.dateTime(m.started_at ?? m.created_at)}</span>
+                  <span className="block text-sm text-muted-foreground">
+                    {m.purpose === "livestock" && `${t("drone.countHistory")} · `}{t(`mission.${m.status}` as TKey)} · {format.dateTime(m.started_at ?? m.created_at)}
+                  </span>
                 </span>
                 <Button variant="ghost" size="sm" onClick={() => router.push(`/drone?mission=${m.id}`, { scroll: false })}>{t("common.open")}</Button>
               </li>

@@ -74,6 +74,7 @@ class Farm(Base):
     owner: Mapped[User] = relationship(back_populates="farms")
     fields: Mapped[list["Field"]] = relationship(back_populates="farm", cascade="all, delete-orphan")
     drones: Mapped[list["Drone"]] = relationship(back_populates="farm", cascade="all, delete-orphan")
+    livestock_groups: Mapped[list["LivestockGroup"]] = relationship(cascade="all, delete-orphan")
 
 
 class Field(Base):
@@ -288,6 +289,48 @@ class Emergency(Base):
     def add_log(self, code: str, **params: Any) -> None:
         # A new list, so SQLAlchemy sees the JSON column as changed.
         self.log = [*(self.log or []), {"code": code, "params": params, "at": utcnow().isoformat()}]
+
+
+class LivestockGroup(Base):
+    """A herd or flock of one species, with its current head count."""
+
+    __tablename__ = "livestock_groups"
+
+    id: Mapped[str] = _pk()
+    farm_id: Mapped[str] = mapped_column(ForeignKey("farms.id", ondelete="CASCADE"), index=True)
+    # The pasture the drone flies over to count this group. None for animals kept indoors.
+    field_id: Mapped[str | None] = mapped_column(ForeignKey("fields.id", ondelete="SET NULL"), index=True)
+    species: Mapped[str] = mapped_column(String(12))  # cattle|sheep|goat|horse|camel|poultry|other
+    name: Mapped[str] = mapped_column(String(120))  # i18n key or literal
+    head_count: Mapped[int] = mapped_column(Integer, default=0)
+    notes: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = _ts()
+    updated_at: Mapped[datetime] = _ts()
+
+    field: Mapped[Field | None] = relationship()
+    events: Mapped[list["LivestockEvent"]] = relationship(
+        back_populates="group", cascade="all, delete-orphan", order_by="LivestockEvent.created_at"
+    )
+
+
+class LivestockEvent(Base):
+    """One change to a group's head count. Together they explain the current number."""
+
+    __tablename__ = "livestock_events"
+
+    id: Mapped[str] = _pk()
+    group_id: Mapped[str] = mapped_column(ForeignKey("livestock_groups.id", ondelete="CASCADE"), index=True)
+    kind: Mapped[str] = mapped_column(String(12))  # birth|purchase|sale|death|recount|drone_count
+    change: Mapped[int] = mapped_column(Integer)  # signed difference
+    count_after: Mapped[int] = mapped_column(Integer)
+    note: Mapped[str] = mapped_column(String(300), default="")
+    # Set for drone counts: which flight counted, and how sure the detector was.
+    mission_id: Mapped[str | None] = mapped_column(ForeignKey("drone_missions.id", ondelete="SET NULL"))
+    confidence: Mapped[float | None] = mapped_column(Float)
+    is_simulated: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = _ts(index=True)
+
+    group: Mapped[LivestockGroup] = relationship(back_populates="events")
 
 
 class ChatMessage(Base):

@@ -27,6 +27,8 @@ TEXT: dict[str, dict[str, str]] = {
         "no_fields": "{farm} has no fields yet. Add a field first, and I'll be able to answer using its data.",
         "problems": " Open problem areas: {items}.",
         "no_ndvi": "no data yet",
+        "ha": "ha",
+        "decimal": ".",
         "notice": "Demo assistant: answers come from fixed templates filled with your farm data, not from an AI model.",
     },
     "ru": {
@@ -39,6 +41,8 @@ TEXT: dict[str, dict[str, str]] = {
         "no_fields": "В хозяйстве «{farm}» пока нет полей. Добавьте поле, и я смогу отвечать по его данным.",
         "problems": " Открытые проблемные участки: {items}.",
         "no_ndvi": "нет данных",
+        "ha": "га",
+        "decimal": ",",
         "notice": "Демо-ассистент: ответы составлены по шаблонам с данными вашего хозяйства, а не ИИ-моделью.",
     },
     "kk": {
@@ -51,6 +55,8 @@ TEXT: dict[str, dict[str, str]] = {
         "no_fields": "«{farm}» шаруашылығында әзірге алқап жоқ. Алқап қосыңыз, сонда оның деректерімен жауап бере аламын.",
         "problems": " Ашық мәселелі учаскелер: {items}.",
         "no_ndvi": "дерек жоқ",
+        "ha": "га",
+        "decimal": ",",
         "notice": "Демо-көмекші: жауаптар ЖИ моделінен емес, шаруашылық деректері қойылған үлгілерден алынады.",
     },
 }
@@ -108,13 +114,19 @@ class DemoAssistant(AssistantProvider):
             return text["stress"].format(**common)
 
         lines = "\n".join(
-            f"• {f['name']} ({f['crop']}, {f['area']} ha): NDVI {self._num(f['ndvi'], text)}, {f['health']}"
+            f"• {f['name']} ({f['crop']}, {self._area(f['area'], text)} {text['ha']}): "
+            f"NDVI {self._num(f['ndvi'], text)}, {f['health']}"
             for f in fields
         )
         return text["overview"].format(
-            count=len(fields), area=context["farm"]["total_area"], lines=lines, **common
+            count=len(fields), area=self._area(context["farm"]["total_area"], text), lines=lines, **common
         )
 
     @staticmethod
     def _num(value: float | None, text: dict) -> str:
-        return text["no_ndvi"] if value is None else f"{value:.2f}"
+        return text["no_ndvi"] if value is None else f"{value:.2f}".replace(".", text["decimal"])
+
+    @staticmethod
+    def _area(value: float, text: dict) -> str:
+        # 110.0 reads as "110", 85.5 as "85.5" (or "85,5" in Kazakh and Russian).
+        return f"{value:.1f}".removesuffix(".0").replace(".", text["decimal"])

@@ -1,0 +1,232 @@
+<title>ZERNO Audit Draft</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one reading column; a summary strip, then numbered findings grouped by urgency, each with problem, proposed fix and effort. */
+:root {
+  --bg: #F5F7F3; --card: #FFFFFF; --ink: #1E2923; --muted: #5E6A62; --line: #DFE5DC;
+  --brand: #174C38; --accent: #2E8058;
+  --crit: #B93636; --crit-bg: #FBEAEA; --warn: #8A5A10; --warn-bg: #FBF1DF; --low: #3F5E8C; --low-bg: #E7EEF8; --ok: #2E6B45; --ok-bg: #E4F1E5;
+  --body: "Manrope", "Segoe UI", system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0F1A15; --card: #16241D; --ink: #E6EEE8; --muted: #9AAFA2; --line: #26392F;
+  --brand: #A8D96C; --accent: #8FCB62;
+  --crit: #F09A9A; --crit-bg: #3A1D1D; --warn: #EBC27A; --warn-bg: #352A14; --low: #A9C2EA; --low-bg: #1C2738; --ok: #9BD3A9; --ok-bg: #1A3324; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0F1A15; --card: #16241D; --ink: #E6EEE8; --muted: #9AAFA2; --line: #26392F;
+  --brand: #A8D96C; --accent: #8FCB62;
+  --crit: #F09A9A; --crit-bg: #3A1D1D; --warn: #EBC27A; --warn-bg: #352A14; --low: #A9C2EA; --low-bg: #1C2738; --ok: #9BD3A9; --ok-bg: #1A3324; color-scheme: dark; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.55; }
+.wrap { max-width: 860px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 80px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: clamp(28px, 5vw, 40px); line-height: 1.15; margin: 10px 0 12px; letter-spacing: -.015em; text-wrap: balance; }
+h2 { font-size: 22px; margin: 44px 0 14px; display: flex; align-items: center; gap: 10px; text-wrap: balance; }
+.intro { color: var(--muted); max-width: 62ch; margin: 0; }
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-top: 26px; }
+.sum { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.sum b { display: block; font-size: 26px; font-variant-numeric: tabular-nums; }
+.sum span { font-size: 13px; color: var(--muted); }
+.passed { margin-top: 18px; padding: 14px 16px; border-radius: 12px; background: var(--ok-bg); color: var(--ok); font-size: 14.5px; }
+.passed b { font-weight: 700; }
+.how { margin-top: 14px; font-size: 14.5px; color: var(--muted); }
+.how code, .item code { font-family: var(--mono); font-size: 13px; background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; word-break: break-word; }
+.pill { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; font-weight: 500; }
+.p-crit { background: var(--crit-bg); color: var(--crit); }
+.p-warn { background: var(--warn-bg); color: var(--warn); }
+.p-low { background: var(--low-bg); color: var(--low); }
+.list { display: grid; gap: 12px; }
+.item { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 4px 14px; }
+.num { font-family: var(--mono); font-size: 15px; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; border: 1.5px solid var(--line); color: var(--muted); }
+.crit .num { border-color: var(--crit); color: var(--crit); }
+.warn .num { border-color: var(--warn); color: var(--warn); }
+.item h3 { margin: 4px 0 6px; font-size: 17.5px; line-height: 1.35; text-wrap: balance; }
+.item p { margin: 0 0 8px; font-size: 15px; }
+.lbl { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); display: block; margin-top: 6px; }
+.fix { border-left: 2px solid var(--accent); padding-left: 12px; margin-top: 4px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 10px; font-size: 13px; color: var(--muted); }
+.meta b { color: var(--ink); font-weight: 600; }
+.answer { margin-top: 44px; padding: 20px; border-radius: 14px; border: 1.5px dashed var(--accent); }
+.answer h2 { margin-top: 0; }
+.answer p { margin: 0 0 8px; }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Черновик · 9 ноября 2026</div>
+  <h1>Проверка ZERNO перед хакатоном</h1>
+  <p class="intro">Я прогнал все тесты, открыл каждый экран на компьютере и на телефоне (375 px), прошёл сценарии с ассистентом и дроном и прочитал ключевой код. Ниже 16 недочётов и как я предлагаю их исправить. Пока ничего не исправлено: ответьте номерами, что делаем.</p>
+
+  <div class="summary">
+    <div class="sum"><b>2</b><span>важно до выступления</span></div>
+    <div class="sum"><b>10</b><span>заметно на демо</span></div>
+    <div class="sum"><b>4</b><span>техника и процесс</span></div>
+    <div class="sum"><b>≈ 10 ч</b><span>если делать всё, кроме пункта 2б</span></div>
+  </div>
+
+  <div class="passed"><b>Что в порядке.</b> 101 тест бэкенда и 7 тестов фронтенда проходят, проверка типов и линтер без ошибок. Все 11 экранов открываются, данные приходят из API. Каждый запрос проверяет, что ферма принадлежит пользователю. В архиве <code>ZERNO_хакатон.zip</code> нет паролей и ключей.</div>
+
+  <h2><span class="pill p-crit">Важно</span> До выступления</h2>
+  <div class="list">
+    <div class="item crit"><span class="num">1</span><div>
+      <h3>Любой в той же Wi-Fi сети может сменить пароль чужого аккаунта</h3>
+      <p>В <code>backend/.env</code> включено <code>EXPOSE_RESET_TOKENS=true</code>, а <code>Запустить ZERNO.bat</code> открывает сайт для всей сети. На хакатоне это общий Wi-Fi: достаточно ввести чужой email в «Забыли пароль», и ссылка на сброс появится прямо на экране. Демо-аккаунт не задет, задеты все зарегистрированные.</p>
+      <span class="lbl">Решение</span>
+      <p class="fix">Поставить <code>EXPOSE_RESET_TOKENS=false</code> в <code>backend/.env</code> и перезапустить сервер. Страница сброса останется, но ссылку покажет только сервер в своём логе.</p>
+      <div class="meta"><span>Время: <b>1 минута</b></span><span>Риск: <b>нет</b></span></div>
+    </div></div>
+
+    <div class="item crit"><span class="num">2</span><div>
+      <h3>Все посетители «Открыть панель» работают в одной демо-ферме</h3>
+      <p>Если во время питча жюри откроет сайт по адресу или QR, их нажатия попадут в ту же ферму, что у вас на экране: SOS-тревога, запуск дрона («дрон занят» у вас), сброс демо-фермы в настройках, удаление отчёта.</p>
+      <span class="lbl">Решение (два варианта)</span>
+      <p class="fix"><b>2а, без кода:</b> перед выступлением нажать «Настройки → Демо и система → Сбросить демо-ферму» и давать адрес жюри только после своего показа.<br><b>2б, в коде:</b> при демо-входе создавать каждому посетителю свою копию фермы (функция сида уже есть, её использует сброс) и удалять копии старше суток.</p>
+      <div class="meta"><span>Время: <b>2а — 0 мин, 2б — 2–3 часа</b></span><span>Риск 2б: <b>средний</b>, затрагивает вход</span></div>
+    </div></div>
+  </div>
+
+  <h2><span class="pill p-warn">Заметно</span> На демо и в интерфейсе</h2>
+  <div class="list">
+    <div class="item warn"><span class="num">3</span><div>
+      <h3>На телефоне страница дрона уезжает вбок после «Построить маршрут»</h3>
+      <p>Ширина страницы становится 401 px при экране 375 px: появляется горизонтальная прокрутка, правый край карточек и кнопка «Отмена» обрезаны. Причина: сетка в <code>frontend/app/(app)/drone/page.tsx</code>, строки 195 и 202, растягивает колонку под самое широкое содержимое.</p>
+      <span class="lbl">Решение</span>
+      <p class="fix">Задать колонкам <code>grid-cols-[minmax(0,1fr)]</code> на мобильной ширине, чтобы содержимое переносилось, а не раздвигало страницу. Затем проверить на 375 px.</p>
+      <div class="meta"><span>Время: <b>10 минут</b></span><span>Риск: <b>низкий</b></span></div>
+    </div></div>
+
+    <div class="item warn"><span class="num">4</span><div>
+      <h3>ИИ-ассистент на телефоне: сжатая шапка и низкое окно чата</h3>
+      <p>Строка «Ответы основаны на данных…» сжата в узкую колонку по одному слову, потому что рядом стоят значок «Демо-ассистент» и «Очистить чат». Окно ответа получается низким, подсказка под ним обрезана (<code>assistant/page.tsx</code>, строки 55–62).</p>
+      <span class="lbl">Решение</span>
+      <p class="fix">На узком экране переносить значок и кнопку под текст (или оставить у кнопки только иконку), а окно чата растянуть на всю доступную высоту.</p>
+      <div class="meta"><span>Время: <b>20 минут</b></span><span>Риск: <b>низкий</b></span></div>
+    </div></div>
+
+    <div class="item warn"><span class="num">5</span><div>
+      <h3>Первый визит открывается на английском</h3>
+      <p>Язык по умолчанию — английский (<code>providers/i18n-provider.tsx</code>, строка 21). Жюри в Казахстане сначала видит английскую главную. У тех, кто уже выбрал русский, при каждой загрузке на мгновение мелькает английский текст.</p>
+      <span class="lbl">Решение</span>
+      <p class="fix">По умолчанию брать язык браузера (казахский или русский, иначе русский). Чтобы убрать мелькание, хранить выбор в cookie и сразу отдавать страницу на нужном языке.</p>
+      <div class="meta"><span>Время: <b>20 минут</b> (без cookie), <b>1–2 часа</b> (с cookie)</span><span>Риск: <b>низкий</b></span></div>
+    </div></div>
+
+    <div class="item warn"><span class="num">6</span><div>
+      <h3>Карта NDVI противоречит списку полей</h3>
+      <p>У Приречного поля в списке и на главной NDVI 0.52, а в «Аналитике → Карта NDVI» среднее 0,49. Демо-растр строится вокруг значения поля, но проблемные зоны тянут среднее вниз (<code>services/sample_data.py</code>, строка 45). Внимательный член жюри это заметит.</p>
+      <span class="lbl">Решение</span>
+      <p class="fix">После построения растра сдвигать его так, чтобы среднее точно совпадало с NDVI поля. Добавить тест на это.</p>
+      <div class="meta"><span>Время: <b>30 минут</b></span><span>Риск: <b>низкий</b></span></div>
+    </div></div>
+
+    <div class="item warn"><span class="num">7</span><div>
+      <h3>Спутниковая карта зависит от интернета на площадке</h3>
+      <p>Подложка грузится с серверов Esri. У меня карта полей была серой больше 6 секунд и без индикатора загрузки. При слабом Wi-Fi на сцене карта останется пустой.</p>
+      <span class="lbl">Решение</span>
+      <p class="fix">Показывать индикатор, пока грузятся снимки. Сохранить в проект 16–30 снимков вокруг демо-фермы и отдавать их локально, если интернета нет. Быстрый обход без кода: выключить переключатель «Спутниковый снимок», поля останутся видны.</p>
+      <div class="meta"><span>Время: <b>1 час</b></span><span>Риск: <b>низкий</b></span></div>
+    </div></div>
+
+    <div class="item warn"><span class="num">8</span><div>
+      <h3>Названия дронов не переводятся</h3>
+      <p>В русском и казахском интерфейсе написано «Scout S1 (simulated)». Название задано текстом в <code>backend/app/seed.py</code>, строки 220 и 223.</p>
+      <span class="lbl">Решение</span>
+      <p class="fix">Назвать дроны «Scout S1» и «Scout S2»: на странице уже есть плашка о симуляции. Потом сбросить демо-ферму.</p>
+      <div class="meta"><span>Время: <b>10 минут</b></span><span>Риск: <b>нет</b></span></div>
+    </div></div>
+
+    <div class="item warn"><span class="num">9</span><div>
+      <h3>Заглавные буквы посреди фразы в ответах ассистента</h3>
+      <p>Например: «проблемные участки: Возможное заболевание листьев, Возможный дефицит влаги». Названия проблем вставляются в шаблон как есть (<code>adapters/llm/demo.py</code>, строка 80).</p>
+      <span class="lbl">Решение</span>
+      <p class="fix">При сборке списка писать названия со строчной буквы. Для казахского и английского правило то же.</p>
+      <div class="meta"><span>Время: <b>10 минут</b></span><span>Риск: <b>нет</b></span></div>
+    </div></div>
+
+    <div class="item warn"><span class="num">10</span><div>
+      <h3>Цвета линий в «Динамике NDVI» спорят со статусами</h3>
+      <p>Восточное поле (статус «Критическое», красный) нарисовано оранжевым, Приречное («Требует внимания», жёлтый) — синим. На главной цвета другие, и это путает (<code>components/analytics/charts.tsx</code>, строка 14).</p>
+      <span class="lbl">Решение</span>
+      <p class="fix">Дать полям нейтральные цвета, не похожие на статусные (зелёный, жёлтый, красный), и держать за полем один и тот же цвет на всех графиках.</p>
+      <div class="meta"><span>Время: <b>15 минут</b></span><span>Риск: <b>нет</b></span></div>
+    </div></div>
+
+    <div class="item warn"><span class="num">15</span><div>
+      <h3>Карта и поля не ограничены Казахстаном</h3>
+      <p>Демо-ферма стоит правильно, под Астаной в Акмолинской области (<code>backend/app/seed.py</code>, строка 29). Но при добавлении поля можно ввести любые координаты мира (<code>components/fields/field-dialog.tsx</code>, строки 27–28), и карта уедет в другую страну. Регион — свободный текст без списка областей. Название региона хранится по-английски («Akmola Region») и не переводится на русский и казахский.</p>
+      <span class="lbl">Решение</span>
+      <p class="fix">Работаем только по Казахстану, другие страны не добавляем. Три языка (казахский, русский, английский) остаются.<br>
+      • <b>Регион:</b> вместо текстового поля — список из 17 областей Казахстана и городов Астана, Алматы и Шымкент. В базе хранить ключ (например, <code>region.akmola</code>), а название показывать на языке интерфейса.<br>
+      • <b>Координаты:</b> на сайте и в API принимать только точки внутри Казахстана (широта 40.5–55.5°, долгота 46.5–87.4°). Для точки вне страны показывать понятную ошибку на трёх языках.<br>
+      • <b>Карта:</b> не давать уводить её за пределы Казахстана. Если полей нет, центрировать на ферме, а без фермы — на Казахстане, а не на случайной точке.<br>
+      • <b>Демо-ферма:</b> перевести «Akmola Region» в ключ, тогда везде будет «Акмолинская область» или «Ақмола облысы».</p>
+      <div class="meta"><span>Время: <b>1,5 часа</b></span><span>Риск: <b>низкий</b>, нужна миграция поля «регион»</span></div>
+    </div></div>
+
+    <div class="item crit"><span class="num">16</span><div>
+      <h3>Маршрут дрона выходит за границу зоны и тратит лишний заряд</h3>
+      <p>Маршрут строит <code>lawnmower_route</code> в <code>backend/app/domain/geo.py</code> (строки 65–86): проходы «змейкой» с запада на восток, каждый от края до края поля. Я посчитал маршруты демо-фермы на высоте 60 м:</p>
+      <div style="overflow-x:auto"><table style="border-collapse:collapse; font-size:14px; width:100%; min-width:520px; font-variant-numeric:tabular-nums">
+        <tr style="text-align:left; color:var(--muted)"><th style="padding:6px 8px 6px 0">Поле</th><th style="padding:6px 8px">Облёт</th><th style="padding:6px 8px">Перелёт туда и обратно</th><th style="padding:6px 8px">Всего</th><th style="padding:6px 8px">Заряд</th><th style="padding:6px 8px">По самой границе</th></tr>
+        <tr style="border-top:1px solid var(--line)"><td style="padding:6px 8px 6px 0">Северное, 110 га</td><td style="padding:6px 8px">13,5 км</td><td style="padding:6px 8px">2,7 км</td><td style="padding:6px 8px">16,2 км</td><td style="padding:6px 8px">36%</td><td style="padding:6px 8px">475 м</td></tr>
+        <tr style="border-top:1px solid var(--line)"><td style="padding:6px 8px 6px 0">Приречное, 85 га</td><td style="padding:6px 8px">10,3 км</td><td style="padding:6px 8px">2,1 км</td><td style="padding:6px 8px">12,4 км</td><td style="padding:6px 8px">28%</td><td style="padding:6px 8px">360 м</td></tr>
+        <tr style="border-top:1px solid var(--line)"><td style="padding:6px 8px 6px 0">Восточное, 55 га</td><td style="padding:6px 8px">6,9 км</td><td style="padding:6px 8px">1,5 км</td><td style="padding:6px 8px">8,3 км</td><td style="padding:6px 8px">19%</td><td style="padding:6px 8px">395 м</td></tr>
+      </table></div>
+      <p style="margin-top:10px">Откуда выход за зону:<br>
+      • <b>Развороты на самой границе.</b> Каждый проход кончается точно на краю поля, и переход к следующему идёт по линии границы. Это 4–6% маршрута. Реальный дрон на развороте проскакивает вперёд на несколько метров, а GPS ошибается на 2–5 м, так что он будет вылетать за край.<br>
+      • <b>Перелёт от базы и обратно идёт по прямой</b> над соседними полями. На карте это выглядит как маршрут вне зоны.<br>
+      • <b>Облёт всегда покрывает поле целиком.</b> Нельзя слетать только на проблемный участок, хотя приложение уже знает, где он.<br>
+      • <b>Экстренный облёт</b> — круг радиусом 60 м вокруг точки (<code>domain/flight.py</code>, строка 24), без учёта границы поля.</p>
+      <span class="lbl">Решение (три части, можно по отдельности)</span>
+      <p class="fix"><b>16а. Строго внутри зоны.</b> Перед построением маршрута сжимать границу внутрь на запас (например, 10 м плюс радиус разворота). Проходы и развороты строить внутри сжатого контура, экстренный круг обрезать по границе поля. Добавить проверку: если хоть одна точка маршрута вне зоны, маршрут не утверждается. И тесты на прямоугольник, наклонное и вогнутое поле.<br><br>
+      <b>16б. Оптимальный маршрут.</b> Направлять проходы вдоль длинной стороны поля: меньше разворотов, а на каждом развороте дрон тормозит и тратит заряд. Старт и финиш выбирать в углах, ближайших к базе: перебрать 4 угла и 2 направления и взять самый короткий вариант. Перелёт к полю прокладывать вдоль границ полей, а не над чужими посевами. Добавить в расчёт заряда стоимость разворотов: сейчас считается только длина, 2,2% на километр.<br><br>
+      <b>16в. Облёт только нужной зоны.</b> В планировании миссии дать выбор: «всё поле» или «только проблемные участки» (зоны с NDVI ниже 0,4 или с открытой проблемой). По демо-данным облёт одной критической зоны Восточного поля — 3,4 км и 8% заряда вместо 8,3 км и 19% за всё поле, то есть меньше половины. Для ежедневного контроля это и есть смысл проекта: лететь туда, где проблема, а не по всему полю.<br><br>
+      <b>Дополнительно, по желанию:</b> режим «быстрый обзор» на высоте 100 м. Проходы шире, Северное поле — 11,1 км и 25% заряда вместо 16,2 км и 36%, но детализация снимка ниже. Оставить выбор фермеру.</p>
+      <div class="meta"><span>Время: <b>16а — 1 час, 16б — 1,5 часа, 16в — 2 часа</b></span><span>Риск: <b>средний</b>, меняется ядро планирования; покрыть тестами</span></div>
+      <p style="font-size:13.5px; color:var(--muted); margin-top:8px">Цифры посчитаны моим скриптом на текущей демо-ферме. Код проекта при этом не менялся.</p>
+    </div></div>
+  </div>
+
+  <h2><span class="pill p-low">Техника</span> Запуск и процесс</h2>
+  <div class="list">
+    <div class="item"><span class="num">11</span><div>
+      <h3>«Запустить ZERNO.bat» не пересобирает сайт после правок</h3>
+      <p>Сборка запускается, только если её ещё нет. После любых исправлений из этого списка bat-файл покажет старую версию сайта.</p>
+      <span class="lbl">Решение</span>
+      <p class="fix">Пересобирать, если какой-то исходный файл новее сборки, или добавить рядом «Пересобрать ZERNO.bat».</p>
+      <div class="meta"><span>Время: <b>15 минут</b></span><span>Риск: <b>нет</b></span></div>
+    </div></div>
+
+    <div class="item"><span class="num">12</span><div>
+      <h3>Режим разработки показывает ошибку на каждой странице</h3>
+      <p>Next.js пишет «Could not validate that a segment… has instant navigation», а в углу появляется кнопка «1 Issue». На телефоне она закрывает вкладки «Главная» и «Поля». В рабочей сборке (через bat) этого нет.</p>
+      <span class="lbl">Решение</span>
+      <p class="fix">Отключить эту проверку для страниц приложения (<code>export const instant = false</code>) или просто показывать демо только через bat.</p>
+      <div class="meta"><span>Время: <b>10 минут</b></span><span>Риск: <b>низкий</b></span></div>
+    </div></div>
+
+    <div class="item"><span class="num">13</span><div>
+      <h3>Экстренная панель и ещё 30 с лишним файлов не сохранены в git</h3>
+      <p>Вся экстренная панель, иконка, манифест и правки в 30 с лишним файлах есть только в папке. Если с ней что-то случится, работа пропадёт.</p>
+      <span class="lbl">Решение</span>
+      <p class="fix">Сделать коммит этих изменений (с вашего согласия). Презентацию и этот черновик положить в git вместе с ними или оставить вне git.</p>
+      <div class="meta"><span>Время: <b>5 минут</b></span><span>Риск: <b>нет</b></span></div>
+    </div></div>
+
+    <div class="item"><span class="num">14</span><div>
+      <h3>Демо-данные стареют</h3>
+      <p>Даты считаются от момента заполнения базы, поэтому свежие проблемы на главной уже «3 дн. назад», а последняя проверка — 6 ноября. К дню хакатона они устареют ещё сильнее.</p>
+      <span class="lbl">Решение</span>
+      <p class="fix">Утром перед выступлением сбросить демо-ферму (тот же шаг, что в 2а). Код менять не нужно.</p>
+      <div class="meta"><span>Время: <b>1 минута</b></span><span>Риск: <b>нет</b></span></div>
+    </div></div>
+  </div>
+
+  <div class="answer">
+    <h2>Как ответить</h2>
+    <p>Напишите номера: например, «делаем 1, 3, 4, 8, 9, 11, 13» или «делаем всё, кроме 2б». Пункты 2а и 14 — это шаги перед выступлением, их делаете вы.</p>
+    <p>Моя рекомендация на минимум: <b>1, 3, 4, 6, 8, 9, 11, 13, 15, 16а, 16в</b>. Это около шести с половиной часов и закрывает всё, что видно на демо.</p>
+    <p style="color:var(--muted); font-size:14px">Не включено, потому что уже записано в ROADMAP и не мешает хакатону: ограничение попыток входа, хранение сессии в httpOnly cookie, отправка писем.</p>
+  </div>
+</div>

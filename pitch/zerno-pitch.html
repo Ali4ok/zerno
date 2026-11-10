@@ -1,0 +1,904 @@
+<title>ZERNO Pitch</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: a fixed 1600×900 stage scaled to the window; one phone lives above all slides and glides to a new pose on every slide. */
+:root {
+  color-scheme: dark;
+  --night: #0B231A;        /* deck ground */
+  --forest: #123628;       /* raised panels */
+  --brand: #174C38;        /* app primary */
+  --sprout: #2E8058;
+  --lime: #A8D96C;         /* the one accent */
+  --wheat: #E8C66A;
+  --warn: #E8A23A;
+  --danger: #D95757;
+  --ink: #EAF2EA;          /* text on night */
+  --mist: #9DB5A6;         /* secondary text */
+  --line: rgba(168, 217, 108, .16);
+  --paper: #F5F7F3;        /* app background */
+  --app-ink: #1E2923;
+  --app-muted: #646E66;
+  --app-line: #DFE5DC;
+  --display: "Unbounded", "Segoe UI", system-ui, sans-serif;
+  --body: "Manrope", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  --ease: cubic-bezier(.62, .02, .28, 1);
+}
+html, body { height: 100%; }
+body {
+  background: var(--night); color: var(--ink); font-family: var(--body);
+  overflow: hidden; -webkit-font-smoothing: antialiased;
+}
+#viewport {
+  position: relative; height: 100%; overflow: hidden;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+  display: grid; place-items: center;
+}
+#stage {
+  position: absolute; left: 50%; top: 50%; width: 1600px; height: 900px;
+  transform-origin: 0 0; overflow: hidden; border-radius: 6px;
+  background: var(--night);
+}
+
+/* ---------- background ---------- */
+#bg { position: absolute; inset: -60px -400px -60px -60px; transition: transform 1.4s var(--ease); pointer-events: none; }
+#bg::before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(900px 600px at 78% 40%, rgba(46, 128, 88, .30), transparent 70%),
+    radial-gradient(700px 500px at 10% 100%, rgba(168, 217, 108, .08), transparent 70%);
+}
+#bg::after {
+  content: ""; position: absolute; inset: 0; opacity: .5;
+  background: repeating-linear-gradient(104deg, transparent 0 34px, rgba(168, 217, 108, .035) 34px 36px);
+  mask-image: linear-gradient(180deg, transparent, #000 40%, #000 80%, transparent);
+}
+
+/* ---------- chrome ---------- */
+.chrome-top {
+  position: absolute; left: 120px; right: 120px; top: 44px; z-index: 6;
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: var(--mono); font-size: 14px; letter-spacing: .12em; text-transform: uppercase; color: var(--mist);
+}
+.brandmark { display: flex; align-items: center; gap: 12px; color: var(--ink); font-family: var(--display); font-size: 17px; letter-spacing: .14em; font-weight: 600; }
+.brandmark svg { width: 30px; height: 30px; }
+.counter { display: flex; gap: 18px; align-items: baseline; }
+.counter b { color: var(--lime); font-weight: 600; }
+.chrome-bottom {
+  position: absolute; left: 120px; right: 120px; bottom: 40px; z-index: 6;
+  display: flex; align-items: center; gap: 20px;
+}
+.progress { flex: 1; height: 2px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.progress i { display: block; height: 100%; width: 0; background: var(--lime); transition: width 1s var(--ease); }
+.navbtn {
+  width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--line); background: rgba(18, 54, 40, .6);
+  color: var(--ink); display: grid; place-items: center; cursor: pointer; transition: background .2s, border-color .2s;
+}
+.navbtn:hover { background: var(--forest); border-color: rgba(168, 217, 108, .5); }
+.navbtn:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
+.navbtn svg { width: 20px; height: 20px; }
+.hint { font-family: var(--mono); font-size: 13px; color: var(--mist); letter-spacing: .08em; }
+
+/* ---------- slides ---------- */
+.slide { position: absolute; inset: 0; padding: 130px 120px 110px; visibility: hidden; z-index: 2; }
+.slide.on { visibility: visible; }
+.rv { opacity: 0; transform: translateY(22px); transition: opacity .7s ease, transform .9s var(--ease); }
+.slide.on .rv { opacity: 1; transform: none; transition-delay: calc(var(--d, 0) * 90ms + 250ms); }
+.slide.leaving .rv { opacity: 0; transform: translateY(-14px); transition-delay: 0s; transition-duration: .35s; }
+
+.eyebrow { font-family: var(--mono); font-size: 15px; letter-spacing: .16em; text-transform: uppercase; color: var(--lime); font-weight: 500; display: flex; align-items: center; gap: 12px; }
+.eyebrow::before { content: ""; width: 26px; height: 1px; background: var(--lime); }
+h1, h2, h3 { margin: 0; font-family: var(--display); text-wrap: balance; }
+h2 { font-size: 54px; line-height: 1.1; font-weight: 600; letter-spacing: -.01em; margin-top: 22px; }
+h2 em { font-style: normal; color: var(--lime); }
+.lead { font-size: 23px; line-height: 1.55; color: var(--mist); margin: 26px 0 0; max-width: 34em; }
+.lead strong { color: var(--ink); font-weight: 600; }
+.col { position: absolute; top: 150px; }
+
+/* title */
+.title-wrap { position: absolute; left: 120px; top: 190px; width: 820px; }
+.wordmark { font-family: var(--display); font-weight: 700; font-size: 168px; line-height: .9; letter-spacing: -.02em; margin-top: 26px; }
+.wordmark span { color: var(--lime); }
+.tagline { font-family: var(--display); font-size: 30px; font-weight: 500; line-height: 1.3; margin-top: 30px; }
+.langs { display: flex; gap: 10px; margin-top: 40px; }
+.chip { font-family: var(--mono); font-size: 14px; padding: 9px 14px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); background: rgba(18, 54, 40, .55); }
+.chip.live { border-color: rgba(168, 217, 108, .5); color: var(--lime); display: inline-flex; gap: 8px; align-items: center; }
+.chip.live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 4px rgba(168, 217, 108, .18); }
+
+/* problem */
+.pains { display: grid; gap: 26px; margin-top: 44px; }
+.pain { display: grid; grid-template-columns: 74px 1fr; gap: 22px; align-items: start; padding-top: 24px; border-top: 1px solid var(--line); }
+.pain .k { font-family: var(--display); font-size: 30px; color: var(--wheat); font-weight: 600; line-height: 1; }
+.pain .k small { display: block; font-family: var(--mono); font-size: 12px; color: var(--mist); font-weight: 500; letter-spacing: .1em; margin-top: 8px; }
+.pain h3 { font-size: 22px; font-weight: 600; line-height: 1.3; }
+.pain p { margin: 8px 0 0; font-size: 18px; line-height: 1.5; color: var(--mist); }
+
+/* features */
+.features { display: grid; grid-template-columns: 1fr 1fr; gap: 34px 46px; margin-top: 50px; }
+.feat { display: grid; grid-template-columns: 52px 1fr; gap: 18px; }
+.feat .ic { width: 52px; height: 52px; border-radius: 14px; background: var(--forest); border: 1px solid var(--line); display: grid; place-items: center; color: var(--lime); }
+.feat .ic svg { width: 24px; height: 24px; }
+.feat h3 { font-family: var(--body); font-size: 21px; font-weight: 700; }
+.feat p { margin: 6px 0 0; font-size: 17px; line-height: 1.45; color: var(--mist); }
+
+/* steps */
+.steps { list-style: none; margin: 44px 0 0; padding: 0; display: grid; gap: 30px; counter-reset: s; }
+.steps li { display: grid; grid-template-columns: 58px 1fr; gap: 20px; counter-increment: s; }
+.steps li::before {
+  content: counter(s); width: 58px; height: 58px; border-radius: 50%; border: 1px solid var(--lime);
+  display: grid; place-items: center; font-family: var(--display); font-size: 22px; color: var(--lime); font-weight: 600;
+}
+.steps h3 { font-family: var(--body); font-size: 22px; font-weight: 700; margin-top: 4px; }
+.steps p { margin: 6px 0 0; font-size: 17px; line-height: 1.5; color: var(--mist); }
+.aside { border-left: 1px solid var(--line); padding-left: 26px; }
+.aside h4 { margin: 0; font-family: var(--mono); font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--wheat); font-weight: 500; }
+.aside ul { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 16px; }
+.aside li { font-size: 17px; line-height: 1.45; color: var(--ink); display: grid; grid-template-columns: 20px 1fr; gap: 8px; }
+.aside li svg { width: 18px; height: 18px; color: var(--lime); margin-top: 3px; }
+
+.note {
+  margin-top: 34px; padding: 20px 24px; border-radius: 14px; background: rgba(18, 54, 40, .7); border: 1px solid var(--line);
+  font-size: 17px; line-height: 1.5; color: var(--mist); max-width: 40em;
+}
+.note b { color: var(--wheat); font-weight: 600; }
+
+/* ndvi bars */
+.bars { margin-top: 44px; display: grid; gap: 26px; width: 760px; }
+.bar-row { display: grid; grid-template-columns: 230px 1fr 76px; gap: 20px; align-items: center; }
+.bar-row .nm { font-size: 20px; font-weight: 700; }
+.bar-row .nm small { display: block; font-size: 14px; color: var(--mist); font-weight: 500; margin-top: 3px; }
+.track { height: 14px; border-radius: 7px; background: rgba(234, 242, 234, .07); position: relative; }
+.track i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 7px; width: 0; transition: width 1.2s var(--ease) .5s; }
+.slide.on .track i { width: var(--w); }
+.bar-row .v { font-family: var(--mono); font-size: 22px; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.delta { font-family: var(--mono); font-size: 14px; color: var(--mist); margin-top: 18px; letter-spacing: .04em; }
+.quote { margin-top: 40px; display: flex; gap: 16px; align-items: center; font-size: 19px; color: var(--ink); }
+.quote .q { padding: 14px 20px; border-radius: 18px 18px 4px 18px; background: var(--lime); color: var(--brand); font-weight: 700; }
+
+/* sos flow */
+.flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 46px; width: 900px; }
+.flow div { position: relative; padding: 22px 18px 0 0; border-top: 2px solid var(--danger); font-size: 17px; line-height: 1.4; }
+.flow div::before { content: ""; position: absolute; top: -7px; left: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--danger); }
+.flow small { display: block; font-family: var(--mono); color: var(--mist); font-size: 12px; letter-spacing: .1em; margin-bottom: 8px; }
+
+/* tech */
+.arch { display: flex; align-items: center; gap: 14px; margin-top: 40px; flex-wrap: wrap; }
+.node { padding: 14px 20px; border-radius: 12px; border: 1px solid var(--line); background: var(--forest); font-family: var(--mono); font-size: 16px; }
+.node small { display: block; font-family: var(--body); font-size: 13px; color: var(--mist); margin-top: 3px; }
+.arrow { color: var(--lime); font-family: var(--mono); font-size: 20px; }
+.adapters { margin-top: 16px; font-family: var(--mono); font-size: 14px; color: var(--mist); letter-spacing: .04em; }
+.adapters b { color: var(--lime); font-weight: 500; }
+.truth { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; margin-top: 38px; width: 1060px; }
+.truth > div { border-top: 2px solid var(--lime); padding-top: 16px; }
+.truth > div.sim { border-color: var(--wheat); }
+.truth h4 { margin: 0 0 12px; font-family: var(--mono); font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--lime); font-weight: 500; }
+.truth .sim h4 { color: var(--wheat); }
+.truth ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.truth li { font-size: 17px; line-height: 1.4; color: var(--ink); }
+.truth li span { color: var(--mist); }
+
+/* business */
+.tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; margin-top: 50px; }
+.tier { padding: 30px 28px; border-radius: 18px; background: var(--forest); border: 1px solid var(--line); }
+.tier.mid { background: var(--brand); border-color: rgba(168, 217, 108, .45); }
+.tier .who { font-family: var(--mono); font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--lime); }
+.tier h3 { font-size: 28px; font-weight: 600; margin-top: 14px; }
+.tier p { margin: 14px 0 0; font-size: 17px; line-height: 1.5; color: var(--mist); }
+.tier.mid p { color: #CFE3D4; }
+.pilot { margin-top: 34px; display: flex; gap: 18px; align-items: center; font-size: 20px; }
+.pilot .pin { width: 46px; height: 46px; border-radius: 50%; background: var(--wheat); color: var(--night); display: grid; place-items: center; flex: none; }
+.pilot .pin svg { width: 22px; height: 22px; }
+
+/* roadmap */
+.road { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 60px; position: relative; }
+.road::before { content: ""; position: absolute; left: 0; right: 0; top: 7px; height: 2px; background: linear-gradient(90deg, var(--lime) 0 22%, var(--line) 22%); }
+.stage-item { position: relative; padding-top: 36px; }
+.stage-item::before { content: ""; position: absolute; top: 0; left: 0; width: 16px; height: 16px; border-radius: 50%; background: var(--night); border: 2px solid var(--mist); }
+.stage-item.now::before { background: var(--lime); border-color: var(--lime); box-shadow: 0 0 0 6px rgba(168, 217, 108, .18); }
+.stage-item .when { font-family: var(--mono); font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--mist); }
+.stage-item.now .when { color: var(--lime); }
+.stage-item h3 { font-size: 24px; font-weight: 600; margin-top: 10px; line-height: 1.25; }
+.stage-item ul { margin: 16px 0 0; padding: 0; list-style: none; display: grid; gap: 9px; }
+.stage-item li { font-size: 16px; line-height: 1.45; color: var(--mist); padding-left: 16px; position: relative; }
+.stage-item li::before { content: ""; position: absolute; left: 0; top: 10px; width: 6px; height: 1px; background: var(--mist); }
+
+/* final */
+.asks { display: grid; gap: 14px; margin-top: 40px; }
+.ask { display: flex; gap: 16px; align-items: center; font-size: 21px; font-weight: 600; }
+.ask i { width: 34px; height: 34px; border-radius: 50%; background: var(--forest); border: 1px solid var(--lime); display: grid; place-items: center; color: var(--lime); font-style: normal; flex: none; }
+.ask i svg { width: 16px; height: 16px; }
+
+/* ---------- phone ---------- */
+#phone {
+  position: absolute; left: 0; top: 0; width: 340px; height: 700px; z-index: 4;
+  transition: transform 1.15s var(--ease), opacity .8s ease;
+  will-change: transform;
+}
+.float { width: 100%; height: 100%; animation: float 7s ease-in-out infinite; }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.device {
+  position: relative; width: 100%; height: 100%; border-radius: 56px; padding: 11px;
+  background: linear-gradient(145deg, #2C3631, #121815 60%, #222B26);
+  box-shadow: 0 0 0 1.5px #3A4640 inset, 0 50px 90px -30px rgba(0, 0, 0, .75), 0 18px 40px -20px rgba(0, 0, 0, .6);
+}
+.device::before, .device::after { content: ""; position: absolute; width: 3px; border-radius: 2px; background: #2A332E; }
+.device::before { left: -3px; top: 150px; height: 64px; box-shadow: 0 84px 0 #2A332E; }
+.device::after { right: -3px; top: 190px; height: 96px; }
+.screen { position: relative; width: 100%; height: 100%; border-radius: 45px; overflow: hidden; background: var(--paper); color: var(--app-ink); font-family: var(--body); }
+.island { position: absolute; left: 50%; top: 10px; width: 96px; height: 28px; margin-left: -48px; border-radius: 20px; background: #0A0D0B; z-index: 5; }
+.status { position: absolute; left: 0; right: 0; top: 0; height: 46px; padding: 15px 28px 0; display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; z-index: 4; }
+.status .sig { display: flex; gap: 5px; align-items: center; }
+.status .sig i { display: block; width: 3px; background: currentColor; border-radius: 1px; }
+.status .bat { width: 23px; height: 11px; border: 1.5px solid currentColor; border-radius: 3px; padding: 1px; opacity: .9; }
+.status .bat::after { content: ""; display: block; width: 70%; height: 100%; background: currentColor; border-radius: 1px; }
+.appbar { position: absolute; left: 0; right: 0; top: 46px; height: 46px; padding: 0 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--app-line); background: var(--paper); z-index: 3; }
+.appbar .lg { display: flex; gap: 8px; align-items: center; font-weight: 800; font-size: 15px; letter-spacing: .06em; color: var(--brand); }
+.appbar .lg svg { width: 24px; height: 24px; }
+.appbar .tools { display: flex; gap: 12px; color: var(--app-muted); align-items: center; font-size: 11px; font-weight: 700; }
+.appbar .tools svg { width: 18px; height: 18px; }
+.appbar .dot { position: relative; }
+.appbar .dot::after { content: ""; position: absolute; right: -1px; top: -1px; width: 7px; height: 7px; border-radius: 50%; background: var(--danger); border: 1.5px solid var(--paper); }
+.tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 66px; padding-bottom: 10px; display: flex; background: #fff; border-top: 1px solid var(--app-line); z-index: 3; }
+.tabs > div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 9.5px; color: var(--app-muted); transition: color .4s; }
+.tabs > div svg { width: 19px; height: 19px; }
+.tabs > div.act { color: var(--brand); font-weight: 800; }
+.tabs > div.sos { background: #B93636; color: #fff; font-weight: 800; }
+.tabs > div.sos.act { background: #9E2B2B; }
+.screens { position: absolute; left: 0; right: 0; top: 92px; bottom: 66px; overflow: hidden; }
+.scr { position: absolute; inset: 0; padding: 14px 16px; opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .7s var(--ease); display: flex; flex-direction: column; gap: 10px; }
+.scr.on { opacity: 1; transform: none; transition-delay: .35s; }
+.scr h5 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -.01em; }
+.scr .sub { font-size: 11px; color: var(--app-muted); margin-top: 2px; }
+.card { background: #fff; border: 1px solid var(--app-line); border-radius: 12px; padding: 10px 12px; }
+.alert { display: flex; gap: 10px; align-items: flex-start; background: #FBEAEA; border: 1px solid #F1CACA; border-radius: 12px; padding: 10px 12px; }
+.alert svg { width: 17px; height: 17px; color: #A83232; flex: none; margin-top: 1px; }
+.alert b { display: block; font-size: 12px; color: #A83232; }
+.alert span { font-size: 10.5px; color: #7A3A3A; }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tile { background: #fff; border: 1px solid var(--app-line); border-radius: 12px; padding: 9px 11px; }
+.tile small { font-size: 10px; color: var(--app-muted); display: block; }
+.tile b { font-size: 19px; font-weight: 800; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.tile b span { font-size: 11px; font-weight: 600; color: var(--app-muted); }
+.tile .pill { display: inline-block; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 6px; background: #FBF1DF; color: #8A5A10; margin-top: 3px; }
+.fl-h { display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; margin-top: 2px; }
+.fl-h span { color: var(--sprout); font-weight: 700; font-size: 11px; }
+.fl { display: grid; grid-template-columns: 1fr 70px 30px; gap: 8px; align-items: center; padding: 8px 0; border-top: 1px solid var(--app-line); font-size: 11.5px; }
+.fl:first-of-type { border-top: 0; }
+.fl small { display: block; color: var(--app-muted); font-size: 9.5px; }
+.fl .tr { height: 6px; border-radius: 3px; background: #EEF1EC; overflow: hidden; }
+.fl .tr i { display: block; height: 100%; border-radius: 3px; }
+.fl b { font-size: 11.5px; text-align: right; font-variant-numeric: tabular-nums; }
+.mapbox { border-radius: 14px; overflow: hidden; background: #DCE6D6; border: 1px solid var(--app-line); position: relative; }
+.mapbox svg { display: block; width: 100%; height: auto; }
+.legend { display: flex; gap: 10px; font-size: 9.5px; color: var(--app-muted); align-items: center; }
+.legend i { display: inline-block; width: 46px; height: 6px; border-radius: 3px; background: linear-gradient(90deg, #D95757, #E8A23A, #C9D65A, #7BBF5E, #3E8E4F); vertical-align: middle; margin: 0 4px; }
+.sel { display: flex; gap: 10px; align-items: center; }
+.sel .sw { width: 34px; height: 34px; border-radius: 10px; background: #FBEAEA; color: #A83232; display: grid; place-items: center; flex: none; }
+.sel .sw svg { width: 17px; height: 17px; }
+.sel b { font-size: 12.5px; display: block; }
+.sel span { font-size: 10.5px; color: var(--app-muted); }
+.badge { display: inline-flex; align-items: center; gap: 5px; font-size: 9.5px; font-weight: 800; padding: 3px 8px; border-radius: 999px; background: #FBF1DF; color: #8A5A10; letter-spacing: .02em; }
+.row { display: flex; justify-content: space-between; align-items: center; }
+.hud { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.hud div { background: #fff; border: 1px solid var(--app-line); border-radius: 10px; padding: 7px 8px; }
+.hud small { display: block; font-size: 9px; color: var(--app-muted); }
+.hud b { font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.prog { height: 7px; border-radius: 4px; background: #EEF1EC; overflow: hidden; margin-top: 6px; }
+.prog i { display: block; height: 100%; background: var(--sprout); border-radius: 4px; width: 0; }
+.btn { border-radius: 10px; padding: 10px; text-align: center; font-size: 12px; font-weight: 800; }
+.btn.pri { background: var(--brand); color: #fff; }
+.btn.out { border: 1.5px solid var(--app-line); color: var(--app-ink); background: #fff; }
+.btn.red { background: #fff; color: #A83232; border: 1.5px solid #F1CACA; }
+.btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.photo { height: 170px; border-radius: 14px; position: relative; overflow: hidden;
+  background:
+    radial-gradient(18px 12px at 64% 38%, rgba(214, 180, 70, .95), transparent 70%),
+    radial-gradient(26px 16px at 30% 64%, rgba(201, 165, 64, .9), transparent 70%),
+    radial-gradient(14px 10px at 76% 72%, rgba(170, 120, 50, .85), transparent 70%),
+    repeating-linear-gradient(68deg, #3E7A3A 0 7px, #5C9A47 7px 12px, #4A8840 12px 19px),
+    #4A8840; }
+.photo .scan { position: absolute; left: 0; right: 0; height: 40px; top: -40px; background: linear-gradient(180deg, transparent, rgba(168, 217, 108, .55)); border-bottom: 2px solid #A8D96C; animation: scan 3.6s ease-in-out infinite; }
+@keyframes scan { 0% { top: -40px; } 60%, 100% { top: 170px; } }
+.photo .box { position: absolute; border: 2px solid #fff; border-radius: 6px; box-shadow: 0 0 0 1px rgba(0,0,0,.2); }
+.photo .tag { position: absolute; left: 10px; bottom: 10px; font-size: 9.5px; font-weight: 800; color: #fff; background: rgba(15, 53, 39, .85); padding: 4px 8px; border-radius: 6px; }
+.res b { font-size: 14px; font-weight: 800; display: block; }
+.res p { margin: 4px 0 0; font-size: 11px; line-height: 1.45; color: var(--app-muted); }
+.conf { display: flex; align-items: center; gap: 8px; font-size: 10.5px; color: var(--app-muted); margin-top: 8px; }
+.conf .prog { flex: 1; margin: 0; }
+.conf .prog i { background: var(--warn); width: 52%; }
+.chat { display: flex; flex-direction: column; gap: 9px; flex: 1; }
+.msg { max-width: 86%; font-size: 11.5px; line-height: 1.45; padding: 9px 12px; border-radius: 14px; }
+.msg.me { align-self: flex-end; background: var(--brand); color: #fff; border-bottom-right-radius: 4px; }
+.msg.bot { align-self: flex-start; background: #fff; border: 1px solid var(--app-line); border-bottom-left-radius: 4px; }
+.msg.bot b { color: #A83232; }
+.msg .from { display: flex; gap: 6px; align-items: center; font-size: 9.5px; font-weight: 800; color: var(--sprout); margin-bottom: 4px; }
+.msg .from svg { width: 13px; height: 13px; }
+.sugg { display: flex; gap: 6px; flex-wrap: wrap; }
+.sugg span { font-size: 10px; font-weight: 700; padding: 5px 9px; border-radius: 999px; border: 1px solid var(--app-line); background: #fff; color: var(--brand); }
+.input { display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; border-radius: 12px; background: #fff; border: 1px solid var(--app-line); font-size: 11px; color: var(--app-muted); }
+.input svg { width: 16px; height: 16px; color: var(--brand); }
+.typing { display: inline-flex; gap: 3px; }
+.typing i { width: 5px; height: 5px; border-radius: 50%; background: var(--app-muted); animation: blink 1.4s infinite; }
+.typing i:nth-child(2) { animation-delay: .2s; } .typing i:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+.sos-head { background: #B93636; color: #fff; border-radius: 14px; padding: 12px 14px; }
+.sos-head b { font-size: 15px; display: block; }
+.sos-head span { font-size: 10.5px; opacity: .85; }
+.sos-btn { align-self: center; width: 132px; height: 132px; border-radius: 50%; background: #D24343; color: #fff; display: grid; place-items: center; text-align: center; font-weight: 800; font-size: 26px; line-height: 1.05; position: relative; margin: 6px 0; box-shadow: 0 10px 24px -8px rgba(185, 54, 54, .6); }
+.sos-btn small { display: block; font-size: 11px; font-weight: 700; opacity: .9; }
+.sos-btn::before, .sos-btn::after { content: ""; position: absolute; inset: -10px; border-radius: 50%; border: 2px solid rgba(210, 67, 67, .35); animation: ring 2.8s ease-out infinite; }
+.sos-btn::after { animation-delay: 1.4s; }
+@keyframes ring { 0% { transform: scale(.92); opacity: 1; } 100% { transform: scale(1.25); opacity: 0; } }
+.kinds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.kinds span { text-align: center; font-size: 10.5px; font-weight: 700; padding: 7px 4px; border-radius: 9px; border: 1.5px solid var(--app-line); background: #fff; }
+.kinds span.act { border-color: #D24343; color: #A83232; background: #FBEAEA; }
+.tl { display: grid; gap: 6px; font-size: 10.5px; }
+.tl div { display: flex; gap: 8px; align-items: center; }
+.tl i { width: 16px; height: 16px; border-radius: 50%; background: #E4F1E5; color: var(--sprout); display: grid; place-items: center; flex: none; }
+.tl i svg { width: 10px; height: 10px; }
+.tl time { margin-left: auto; color: var(--app-muted); font-variant-numeric: tabular-nums; }
+.call { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 12px; background: #fff; border: 1.5px solid #F1CACA; font-size: 12px; font-weight: 800; color: #A83232; }
+.call svg { width: 16px; height: 16px; }
+.call span { margin-left: auto; font-family: var(--mono); font-size: 13px; }
+.chart svg { display: block; width: 100%; height: auto; }
+.keys { display: flex; gap: 10px; font-size: 9.5px; color: var(--app-muted); flex-wrap: wrap; }
+.keys i { display: inline-block; width: 10px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+
+@media (prefers-reduced-motion: reduce) {
+  #phone, #bg, .rv, .scr, .track i, .progress i { transition-duration: .01s !important; transition-delay: 0s !important; }
+  .float, .photo .scan, .sos-btn::before, .sos-btn::after, .typing i { animation: none !important; }
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="logo" viewBox="0 0 28 28"><rect width="28" height="28" rx="6" fill="#174C38"/><g fill="#A8D96C" transform="translate(0 -0.4)"><path d="M0 0C2.6-1.7 3-5 0-8C-3-5-2.6-1.7 0 0Z" transform="translate(14 11.6)"/><path d="M0 0C2.6-1.7 3-5 0-8C-3-5-2.6-1.7 0 0Z" transform="translate(13 16) rotate(-40)"/><path d="M0 0C2.6-1.7 3-5 0-8C-3-5-2.6-1.7 0 0Z" transform="translate(15 16) rotate(40)"/><path d="M0 0C2.6-1.7 3-5 0-8C-3-5-2.6-1.7 0 0Z" transform="translate(13 21) rotate(-40)"/><path d="M0 0C2.6-1.7 3-5 0-8C-3-5-2.6-1.7 0 0Z" transform="translate(15 21) rotate(40)"/><rect x="13.2" y="19.5" width="1.6" height="5.7" rx=".8"/></g></symbol>
+    <g id="ic-defs" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></g>
+    <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></symbol>
+    <symbol id="i-sprout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/></symbol>
+    <symbol id="i-plane" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></symbol>
+    <symbol id="i-leaf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+    <symbol id="i-siren" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18v-6a5 5 0 1 1 10 0v6"/><path d="M5 21a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z"/><path d="M21 12h1M18.5 4.5 18 5M2 12h1M12 2v1M4.9 4.9l.7.7"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-bot" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2M20 14h2M15 13v2M9 13v2"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.1 4.4 9.9 2.3a2 2 0 0 0-1.8 0L3.6 4.5A1 1 0 0 0 3 5.4v14.4a1 1 0 0 0 1.4.9l3.7-1.9a2 2 0 0 1 1.8 0l4.2 2.1a2 2 0 0 0 1.8 0l4.5-2.2a1 1 0 0 0 .6-.9V3.4a1 1 0 0 0-1.4-.9l-3.7 1.9a2 2 0 0 1-1.8 0zM15 5.8v15M9 3.2v15"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4M16 13H8M16 17H8M10 9H8"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.7 9a1 1 0 0 1-.6 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.2-2.7a1.2 1.2 0 0 1 1.6 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-5.5 10.2-7.4 11.8a1 1 0 0 1-1.2 0C9.5 20.2 4 15 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></symbol>
+    <symbol id="i-arrow-l" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></symbol>
+    <symbol id="i-arrow-r" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="i-full" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></symbol>
+  </defs>
+</svg>
+
+<div id="viewport">
+  <div id="stage" role="region" aria-roledescription="презентация" aria-label="ZERNO, питч">
+    <div id="bg"></div>
+
+    <header class="chrome-top">
+      <div class="brandmark"><svg><use href="#logo"/></svg>ZERNO</div>
+      <div class="counter"><span id="secname">Старт</span><span><b id="cur">01</b> / <span id="tot">11</span></span></div>
+    </header>
+
+    <!-- 1 -->
+    <section class="slide" data-name="Старт">
+      <div class="title-wrap">
+        <div class="eyebrow rv" style="--d:0">Smart Agriculture · Казахстан</div>
+        <h1 class="wordmark rv" style="--d:1">ZER<span>NO</span></h1>
+        <p class="tagline rv" style="--d:2">Умное земледелие для фермеров Казахстана</p>
+        <p class="lead rv" style="--d:3">Дроны, анализ посевов и учёт полей в одном приложении. Проблему на поле видно раньше, а вода идёт туда, где она нужна.</p>
+        <div class="langs rv" style="--d:4"><span class="chip live">MVP работает</span><span class="chip">Қазақша</span><span class="chip">Русский</span><span class="chip">English</span></div>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="slide" data-name="Проблема">
+      <div class="col" style="left:700px; width:780px">
+        <div class="eyebrow rv" style="--d:0">Проблема</div>
+        <h2 class="rv" style="--d:1">Беду на поле замечают <em>слишком поздно</em></h2>
+        <div class="pains">
+          <div class="pain rv" style="--d:2"><div class="k">250<small>ГА</small></div><div><h3>Обход полей занимает дни</h3><p>На хозяйстве в сотни гектаров пятно засухи или болезни легко пропустить, пока оно не разрастётся.</p></div></div>
+          <div class="pain rv" style="--d:3"><div class="k">1×<small>НОРМА</small></div><div><h3>Воду и удобрения вносят равномерно</h3><p>Хотя разным участкам одного поля нужно разное. Ресурсы уходят туда, где они не нужны.</p></div></div>
+          <div class="pain rv" style="--d:4"><div class="k">0<small>ЦИФРЫ</small></div><div><h3>Данные живут в тетрадях</h3><p>Отчёт для субсидии или банка собирают вручную, история полей теряется.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section class="slide" data-name="Решение">
+      <div class="col" style="left:120px; width:860px">
+        <div class="eyebrow rv" style="--d:0">Решение</div>
+        <h2 class="rv" style="--d:1">Всё хозяйство в <em>одном приложении</em></h2>
+        <div class="features">
+          <div class="feat rv" style="--d:2"><div class="ic"><svg><use href="#i-map"/></svg></div><div><h3>Поля на карте</h3><p>Границы, культуры и проблемные зоны с цветом по здоровью посевов.</p></div></div>
+          <div class="feat rv" style="--d:3"><div class="ic"><svg><use href="#i-plane"/></svg></div><div><h3>Миссии дрона</h3><p>Маршрут облёта, проверки перед полётом, телеметрия в реальном времени.</p></div></div>
+          <div class="feat rv" style="--d:4"><div class="ic"><svg><use href="#i-leaf"/></svg></div><div><h3>ИИ-доктор посевов</h3><p>Фото листа превращается в отчёт с рекомендацией.</p></div></div>
+          <div class="feat rv" style="--d:5"><div class="ic"><svg><use href="#i-chart"/></svg></div><div><h3>Аналитика NDVI</h3><p>Динамика по неделям и сравнение полей между собой.</p></div></div>
+          <div class="feat rv" style="--d:6"><div class="ic"><svg><use href="#i-bot"/></svg></div><div><h3>ИИ-ассистент</h3><p>Вопросы обычными словами, ответы по данным хозяйства.</p></div></div>
+          <div class="feat rv" style="--d:7"><div class="ic"><svg><use href="#i-file"/></svg></div><div><h3>PDF-отчёты</h3><p>Готовый документ на трёх языках за одно нажатие.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section class="slide" data-name="Как работает">
+      <div class="col" style="left:120px; width:640px">
+        <div class="eyebrow rv" style="--d:0">Как это работает</div>
+        <h2 class="rv" style="--d:1">Облёт, карта, <em>решение</em></h2>
+        <ol class="steps">
+          <li class="rv" style="--d:2"><div><h3>Дрон облетает поле</h3><p>Маршрут «змейкой» строится автоматически, на высоте 60 м.</p></div></li>
+          <li class="rv" style="--d:3"><div><h3>Карта здоровья посевов</h3><p>NDVI считается по ближнему ИК и красному каналам и подсвечивает слабые участки.</p></div></li>
+          <li class="rv" style="--d:4"><div><h3>Решение за фермером</h3><p>Приложение предлагает действие, фермер принимает или отклоняет. Всё остаётся в истории.</p></div></li>
+        </ol>
+      </div>
+      <div class="col aside rv" style="--d:5; left:1250px; width:250px; top:300px">
+        <h4>Безопасность</h4>
+        <ul>
+          <li><svg><use href="#i-shield"/></svg>Старт только после подтверждения оператора</li>
+          <li><svg><use href="#i-shield"/></svg>Один дрон в воздухе, проверки перед полётом</li>
+          <li><svg><use href="#i-shield"/></svg>Сам возвращается домой при низком заряде</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section class="slide" data-name="ИИ-доктор">
+      <div class="col" style="left:700px; width:780px; top:170px">
+        <div class="eyebrow rv" style="--d:0">ИИ-доктор посевов</div>
+        <h2 class="rv" style="--d:1">Сфотографируйте лист и <em>получите отчёт</em></h2>
+        <p class="lead rv" style="--d:2">Фермер загружает фото посева. ZERNO оценивает цвет и пятна и подсказывает, что проверить: <strong>водный стресс, болезнь или нехватку питания</strong>. Последнее слово всегда за человеком.</p>
+        <div class="note rv" style="--d:3"><b>Честно о демо.</b> Сейчас работают правила на OpenCV, уверенность ограничена 60%. Следующий шаг: модель YOLO, обученная на фото пшеницы и ячменя из Казахстана. Код уже готов её подключить.</div>
+      </div>
+    </section>
+
+    <!-- 6 -->
+    <section class="slide" data-name="Аналитика">
+      <div class="col" style="left:120px; width:860px">
+        <div class="eyebrow rv" style="--d:0">Аналитика и ассистент</div>
+        <h2 class="rv" style="--d:1">Цифры, понятные <em>без агронома</em></h2>
+        <div class="bars">
+          <div class="bar-row rv" style="--d:2"><div class="nm">Северное поле<small>пшеница · 110 га</small></div><div class="track"><i style="--w:74%; background:#7BBF5E"></i></div><div class="v">0.74</div></div>
+          <div class="bar-row rv" style="--d:3"><div class="nm">Приречное поле<small>пшеница · 85 га</small></div><div class="track"><i style="--w:52%; background:#E8C66A"></i></div><div class="v">0.52</div></div>
+          <div class="bar-row rv" style="--d:4"><div class="nm">Восточное поле<small>ячмень · 55 га</small></div><div class="track"><i style="--w:36%; background:#D95757"></i></div><div class="v">0.36</div></div>
+        </div>
+        <div class="delta rv" style="--d:5">NDVI за 10 недель: Северное +0.16 · Приречное −0.09 · Восточное −0.21</div>
+        <div class="quote rv" style="--d:6"><span class="q">Какое поле требует осмотра?</span><span style="color:var(--mist)">Ассистент отвечает по данным вашего хозяйства</span></div>
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section class="slide" data-name="SOS">
+      <div class="col" style="left:700px; width:800px; top:170px">
+        <div class="eyebrow rv" style="--d:0">Экстренная панель</div>
+        <h2 class="rv" style="--d:1">Одна кнопка на случай <em>пожара</em></h2>
+        <p class="lead rv" style="--d:2">В степи огонь идёт быстро. ZERNO фиксирует тревогу, отмечает место на карте и предупреждает всех в хозяйстве.</p>
+        <div class="flow rv" style="--d:3">
+          <div><small>00:00</small>Тревога записана</div>
+          <div><small>+1 С</small>Метка пожара на карте</div>
+          <div><small>+1 С</small>Срочное уведомление</div>
+          <div><small>ЧЕЛОВЕК</small>Звонок 112 в одно касание</div>
+        </div>
+        <div class="note rv" style="--d:4">Приложение <b>не вызывает службы само</b>: звонит всегда человек. Облёт дроном и сброс воды пока симулируются.</div>
+      </div>
+    </section>
+
+    <!-- 8 -->
+    <section class="slide" data-name="Технологии">
+      <div class="col" style="left:120px; width:1100px">
+        <div class="eyebrow rv" style="--d:0">Технологии</div>
+        <h2 class="rv" style="--d:1">Работающий MVP, <em>а не макет</em></h2>
+        <div class="arch rv" style="--d:2">
+          <div class="node">Next.js<small>сайт и телефон</small></div><span class="arrow">→</span>
+          <div class="node">FastAPI<small>логика и правила</small></div><span class="arrow">→</span>
+          <div class="node">PostgreSQL<small>все данные</small></div>
+        </div>
+        <div class="adapters rv" style="--d:3">Адаптеры: <b>дрон</b> · <b>зрение</b> · <b>ИИ</b> · <b>хранилище</b> · <b>погода</b>. Симулятор меняется на DJI без правок в логике.</div>
+        <div class="truth rv" style="--d:4">
+          <div><h4>Работает по-настоящему</h4><ul>
+            <li>Аккаунты, хозяйства, поля, решения <span>· PostgreSQL</span></li>
+            <li>Формула NDVI <span>· на каналах NIR и RED</span></li>
+            <li>PDF-отчёты на казахском, русском, английском</li>
+            <li>Экстренная тревога, метка на карте, звонок и SMS</li>
+          </ul></div>
+          <div class="sim"><h4>Пока симулируется, и это видно в интерфейсе</h4><ul>
+            <li>Полёт дрона <span>· адаптер DJI подготовлен</span></li>
+            <li>Анализ фото <span>· демо-правила вместо обученной модели</span></li>
+            <li>Погода и спектральные снимки <span>· примерные данные</span></li>
+          </ul></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9 -->
+    <section class="slide" data-name="Бизнес">
+      <div class="col" style="left:120px; width:1360px">
+        <div class="eyebrow rv" style="--d:0">Бизнес-модель</div>
+        <h2 class="rv" style="--d:1">Подписка для каждого <em>масштаба</em></h2>
+        <div class="tiers">
+          <div class="tier rv" style="--d:2"><div class="who">Фермер</div><h3>Базовый</h3><p>Поля на карте, фото-доктор, ассистент и отчёты. Вход без дрона: достаточно телефона.</p></div>
+          <div class="tier mid rv" style="--d:3"><div class="who">Кооператив</div><h3>Общий дрон</h3><p>Один дрон и агроном на несколько хозяйств. Облёты по расписанию, общие карты и решения.</p></div>
+          <div class="tier rv" style="--d:4"><div class="who">Агрохолдинг</div><h3>Предприятие</h3><p>Карты переменного полива и удобрений, датчики почвы, отчёты для субсидий и банков.</p></div>
+        </div>
+        <div class="pilot rv" style="--d:5"><span class="pin"><svg><use href="#i-pin"/></svg></span><span>Первый шаг: <b>пилот с хозяйствами Акмолинской области</b> и замер реальной экономии воды и удобрений.</span></div>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section class="slide" data-name="Дорожная карта">
+      <div class="col" style="left:120px; width:1360px">
+        <div class="eyebrow rv" style="--d:0">Дорожная карта</div>
+        <h2 class="rv" style="--d:1">От демо к <em>реальным полям</em></h2>
+        <div class="road">
+          <div class="stage-item now rv" style="--d:2"><div class="when">Сейчас</div><h3>MVP готов</h3><ul><li>Все экраны работают с API и базой</li><li>Симулятор дрона, демо-ИИ</li><li>Три языка, PDF, SOS</li></ul></div>
+          <div class="stage-item rv" style="--d:3"><div class="when">Далее</div><h3>Демо становится реальным</h3><ul><li>Модель на фото посевов Казахстана</li><li>Сервис погоды</li><li>Границы полей из KML</li><li>Проверка текстов агрономом</li></ul></div>
+          <div class="stage-item rv" style="--d:4"><div class="when">Затем</div><h3>Настоящие дроны</h3><ul><li>SDK производителя</li><li>Мультиспектральные снимки</li><li>Разрешения на полёты, геозоны</li></ul></div>
+          <div class="stage-item rv" style="--d:5"><div class="when">Масштаб</div><h3>Рост</h3><ul><li>Пилот в Акмолинской области</li><li>Кооперативы и предприятия</li><li>Датчики почвы, прогноз урожая</li></ul></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11 -->
+    <section class="slide" data-name="Финал">
+      <div class="title-wrap" style="top:170px">
+        <div class="eyebrow rv" style="--d:0">Smart Agriculture. Smarter Future.</div>
+        <h2 class="rv" style="--d:1; font-size:72px">Попробуйте ZERNO <em>прямо сейчас</em></h2>
+        <p class="lead rv" style="--d:2">Откройте демо-хозяйство на телефоне: дашборд, карта, полёт дрона и ИИ-доктор, без регистрации.</p>
+        <div class="asks">
+          <div class="ask rv" style="--d:3"><i><svg><use href="#i-check"/></svg></i>Хозяйства для пилота</div>
+          <div class="ask rv" style="--d:4"><i><svg><use href="#i-check"/></svg></i>Агроном-консультант</div>
+          <div class="ask rv" style="--d:5"><i><svg><use href="#i-check"/></svg></i>Партнёр с дроном для первых облётов</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- phone -->
+    <div id="phone" aria-hidden="true">
+      <div class="float">
+        <div class="device">
+          <div class="screen">
+            <div class="island"></div>
+            <div class="status"><span>9:41</span><span class="sig"><i style="height:4px"></i><i style="height:6px"></i><i style="height:8px"></i><i style="height:10px"></i><span class="bat"></span></span></div>
+            <div class="appbar">
+              <div class="lg"><svg><use href="#logo"/></svg>ZERNO</div>
+              <div class="tools"><svg><use href="#i-globe"/></svg>RU<span class="dot"><svg><use href="#i-bell"/></svg></span></div>
+            </div>
+
+            <div class="screens">
+              <!-- dashboard -->
+              <div class="scr" data-screen="dash">
+                <div><h5>ZERNO Demo Farm</h5><div class="sub">Акмолинская область · пшеница</div></div>
+                <div class="alert"><svg><use href="#i-alert"/></svg><div><b>Восточное поле: водный стресс</b><span>7.8 га · критично · сегодня</span></div></div>
+                <div class="tiles">
+                  <div class="tile"><small>Площадь</small><b>250 <span>га</span></b></div>
+                  <div class="tile"><small>Средний NDVI</small><b>0.58</b></div>
+                  <div class="tile"><small>Открытые проблемы</small><b>4</b></div>
+                  <div class="tile"><small>Дрон</small><b style="font-size:15px">Готов</b><br><span class="pill">Симуляция</span></div>
+                </div>
+                <div class="card">
+                  <div class="fl-h">Ваши поля <span>Все поля</span></div>
+                  <div class="fl"><div>Северное поле<small>пшеница · 110 га</small></div><div class="tr"><i style="width:74%;background:#5FAE5B"></i></div><b>0.74</b></div>
+                  <div class="fl"><div>Приречное поле<small>пшеница · 85 га</small></div><div class="tr"><i style="width:52%;background:#E8A23A"></i></div><b>0.52</b></div>
+                  <div class="fl"><div>Восточное поле<small>ячмень · 55 га</small></div><div class="tr"><i style="width:36%;background:#D95757"></i></div><b>0.36</b></div>
+                </div>
+              </div>
+
+              <!-- map -->
+              <div class="scr" data-screen="map">
+                <div class="row"><div><h5>Карта полей</h5><div class="sub">Цвет по NDVI · 3 поля</div></div><span class="badge">4 проблемы</span></div>
+                <div class="mapbox"><svg id="farm-map" viewBox="0 0 2300 1920"></svg></div>
+                <div class="legend">NDVI<span>0.2<i></i>0.8</span></div>
+                <div class="card sel"><span class="sw"><svg><use href="#i-alert"/></svg></span><div><b>Восточное поле · болезнь</b><span>Северо-восток · 4.2 га · критично</span></div></div>
+              </div>
+
+              <!-- drone -->
+              <div class="scr" data-screen="drone">
+                <div class="row"><div><h5>Миссия дрона</h5><div class="sub">Северное поле · 110 га</div></div><span class="badge">Симуляция</span></div>
+                <div class="mapbox"><svg id="drone-map" viewBox="0 0 1500 1100"></svg></div>
+                <div class="hud"><div><small>Высота</small><b>60 м</b></div><div><small>Заряд</small><b id="d-bat">78%</b></div><div><small>NDVI</small><b id="d-ndvi">0.74</b></div></div>
+                <div class="card"><div class="row" style="font-size:11px;font-weight:700"><span>Облёт идёт</span><span id="d-pct">0%</span></div><div class="prog"><i id="d-prog"></i></div></div>
+                <div class="btn red">Вернуть домой</div>
+              </div>
+
+              <!-- doctor -->
+              <div class="scr" data-screen="doctor">
+                <div class="row"><div><h5>ИИ-доктор посевов</h5><div class="sub">Приречное поле · пшеница</div></div><span class="badge">Демо-правила</span></div>
+                <div class="photo"><div class="scan"></div><div class="box" style="left:54%;top:26%;width:58px;height:40px"></div><div class="box" style="left:20%;top:52%;width:66px;height:44px"></div><span class="tag">2 участка с пожелтением</span></div>
+                <div class="card res"><b>Возможен водный стресс</b><p>Пожелтение кончиков листьев на 18% площади снимка. Проверьте влажность почвы и график полива на юго-востоке поля.</p><div class="conf">Уверенность<div class="prog"><i></i></div>52%</div></div>
+                <div class="btns"><div class="btn pri">Принять</div><div class="btn out">Отклонить</div></div>
+              </div>
+
+              <!-- assistant -->
+              <div class="scr" data-screen="chat">
+                <div><h5>ИИ-ассистент</h5><div class="sub">Отвечает по данным хозяйства</div></div>
+                <div class="chat">
+                  <div class="msg me">Какое поле требует дополнительного осмотра?</div>
+                  <div class="msg bot"><div class="from"><svg><use href="#i-bot"/></svg>ZERNO</div><b>Восточное поле</b> (ячмень, 55 га). NDVI 0.36, самый низкий в хозяйстве, и за 10 недель упал на 0.21. Вчера отмечены водный стресс на 7.8 га и болезнь на 4.2 га. Советую облёт дроном и проверку полива.</div>
+                  <div class="msg bot" style="padding:10px 14px"><span class="typing"><i></i><i></i><i></i></span></div>
+                </div>
+                <div class="sugg"><span>Когда поливать?</span><span>Отчёт за неделю</span></div>
+                <div class="input">Спросите о своих полях<svg><use href="#i-send"/></svg></div>
+              </div>
+
+              <!-- sos -->
+              <div class="scr" data-screen="sos">
+                <div class="sos-head"><b>Экстренная помощь</b><span>Для пожара, травмы или другой опасности в хозяйстве.</span></div>
+                <div class="kinds"><span class="act">Пожар</span><span>Травма</span><span>Другое</span></div>
+                <div class="sos-btn"><div>SOS<small>Удерживайте</small></div></div>
+                <div class="call"><svg><use href="#i-phone"/></svg>Позвонить в службу<span>112</span></div>
+                <div class="tl">
+                  <div><i><svg><use href="#i-check"/></svg></i>Тревога записана<time>14:02</time></div>
+                  <div><i><svg><use href="#i-check"/></svg></i>Пожар отмечен на карте<time>14:02</time></div>
+                  <div><i><svg><use href="#i-check"/></svg></i>Уведомление всем в хозяйстве<time>14:02</time></div>
+                </div>
+              </div>
+
+              <!-- analytics -->
+              <div class="scr" data-screen="stats">
+                <div><h5>Аналитика</h5><div class="sub">NDVI по неделям · 10 недель</div></div>
+                <div class="card chart"><svg id="trend" viewBox="0 0 280 170"></svg></div>
+                <div class="keys"><span><i style="background:#3E8E4F"></i>Северное</span><span><i style="background:#E8A23A"></i>Приречное</span><span><i style="background:#D95757"></i>Восточное</span></div>
+                <div class="tiles">
+                  <div class="tile"><small>Лучшее поле</small><b style="font-size:14px">Северное</b><br><small>+0.16 за сезон</small></div>
+                  <div class="tile"><small>Внимание</small><b style="font-size:14px">Восточное</b><br><small>−0.21 за сезон</small></div>
+                </div>
+                <div class="btn pri">Скачать PDF-отчёт</div>
+              </div>
+            </div>
+
+            <div class="tabs">
+              <div data-tab="dash"><svg><use href="#i-home"/></svg>Главная</div>
+              <div data-tab="map"><svg><use href="#i-sprout"/></svg>Поля</div>
+              <div data-tab="drone"><svg><use href="#i-plane"/></svg>Дрон</div>
+              <div data-tab="doctor"><svg><use href="#i-leaf"/></svg>Фото</div>
+              <div data-tab="more"><svg><use href="#i-menu"/></svg>Ещё</div>
+              <div data-tab="sos" class="sos"><svg><use href="#i-siren"/></svg>SOS</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="chrome-bottom">
+      <button class="navbtn" id="prev" type="button" aria-label="Предыдущий слайд"><svg><use href="#i-arrow-l"/></svg></button>
+      <button class="navbtn" id="next" type="button" aria-label="Следующий слайд"><svg><use href="#i-arrow-r"/></svg></button>
+      <div class="progress"><i id="bar"></i></div>
+      <span class="hint">← → · колесо · свайп</span>
+      <button class="navbtn" id="fs" type="button" aria-label="Полный экран"><svg><use href="#i-full"/></svg></button>
+    </footer>
+  </div>
+</div>
+
+<script>
+(() => {
+  const stage = document.getElementById('stage');
+  const slides = [...document.querySelectorAll('.slide')];
+  const phone = document.getElementById('phone');
+  const bg = document.getElementById('bg');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* Phone pose per slide: centre x/y on the 1600×900 stage, tilt, scale, visibility, screen. */
+  const POSES = [
+    { x: 1170, y: 470, r: -6, s: 1,    screen: 'dash' },
+    { x: 380,  y: 475, r: 5,  s: .95,  screen: 'map' },
+    { x: 1215, y: 470, r: 0,  s: 1,    screen: 'dash' },
+    { x: 1010, y: 475, r: 0,  s: .94,  screen: 'drone' },
+    { x: 380,  y: 470, r: -4, s: .98,  screen: 'doctor' },
+    { x: 1235, y: 470, r: 4,  s: .96,  screen: 'chat' },
+    { x: 370,  y: 470, r: -3, s: .98,  screen: 'sos' },
+    { x: 1405, y: 560, r: 7,  s: .64,  screen: 'stats' },
+    { x: 1460, y: 1180, r: 10, s: .7, o: 0, screen: 'stats' },
+    { x: 1460, y: 1180, r: 10, s: .7, o: 0, screen: 'stats' },
+    { x: 1170, y: 470, r: -6, s: 1,    screen: 'dash' },
+  ];
+  const TAB_OF = { dash: 'dash', map: 'map', drone: 'drone', doctor: 'doctor', chat: 'more', stats: 'more', sos: 'sos' };
+
+  /* ---- fit stage ---- */
+  function fit() {
+    const vp = document.getElementById('viewport');
+    const cs = getComputedStyle(vp);
+    const w = vp.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const h = vp.clientHeight;
+    const k = Math.min(w / 1600, h / 900);
+    stage.style.transform = `scale(${k}) translate(-50%, -50%)`;
+  }
+  addEventListener('resize', fit); fit();
+
+  /* ---- NDVI colour ramp ---- */
+  const RAMP = [[.25, [217, 87, 87]], [.4, [232, 162, 58]], [.55, [201, 214, 90]], [.7, [123, 191, 94]], [.8, [62, 142, 79]]];
+  function ndviColor(n) {
+    if (n <= RAMP[0][0]) return `rgb(${RAMP[0][1]})`;
+    for (let i = 1; i < RAMP.length; i++) {
+      if (n <= RAMP[i][0]) {
+        const [a, ca] = RAMP[i - 1], [b, cb] = RAMP[i], t = (n - a) / (b - a);
+        return `rgb(${ca.map((c, j) => Math.round(c + (cb[j] - c) * t))})`;
+      }
+    }
+    return `rgb(${RAMP.at(-1)[1]})`;
+  }
+
+  /* ---- demo farm map, from the seed geometry (metres east/north) ---- */
+  const FIELDS = [
+    { c: [[-900, 1150], [400, 1170], [420, 280], [-880, 250]], z: { nw: .76, ne: .75, sw: .72, se: .73 } },
+    { c: [[-900, 150], [150, 170], [180, -640], [-920, -660]], z: { nw: .61, ne: .57, sw: .47, se: .43 } },
+    { c: [[560, 760], [1230, 780], [1260, -40], [540, -60]], z: { nw: .46, ne: .33, sw: .41, se: .28 } },
+  ];
+  const ISSUES = [[1, 'se', '#E8A23A'], [1, 'sw', '#E8A23A'], [2, 'ne', '#D95757'], [2, 'se', '#D95757']];
+  const toSvg = ([x, y]) => [x + 980, 1210 - y];
+  const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+  function bil(c, u, v) { const [tl, tr, br, bl] = c.map(toSvg); return lerp(lerp(tl, tr, u), lerp(bl, br, u), v); }
+  const ZONES = { nw: [0, 0], ne: [.5, 0], sw: [0, .5], se: [.5, .5] };
+  const pts = a => a.map(p => p.map(Math.round).join(',')).join(' ');
+
+  function drawFarm() {
+    const svg = document.getElementById('farm-map');
+    let h = '<rect width="2300" height="1920" fill="#D8E3D1"/>';
+    h += '<path d="M0 1010 C 500 960, 900 1080, 1400 990 S 2100 900, 2300 980" stroke="#9CC3D8" stroke-width="46" fill="none" opacity=".8"/>';
+    h += '<path d="M1450 0 L1470 1920" stroke="#C9C2AE" stroke-width="22" fill="none"/>';
+    FIELDS.forEach((f, i) => {
+      for (const [k, [u, v]] of Object.entries(ZONES)) {
+        const g = .012;
+        const q = [bil(f.c, u + g, v + g), bil(f.c, u + .5 - g, v + g), bil(f.c, u + .5 - g, v + .5 - g), bil(f.c, u + g, v + .5 - g)];
+        h += `<polygon points="${pts(q)}" fill="${ndviColor(f.z[k])}" opacity=".92"/>`;
+      }
+      h += `<polygon points="${pts(f.c.map(toSvg))}" fill="none" stroke="#fff" stroke-width="14" stroke-linejoin="round"/>`;
+    });
+    ISSUES.forEach(([fi, z, col], n) => {
+      const [u, v] = ZONES[z]; const [x, y] = bil(FIELDS[fi].c, u + .25, v + .25);
+      h += `<circle cx="${x}" cy="${y}" r="70" fill="${col}" opacity=".25"><animate attributeName="r" values="60;110;60" dur="3.2s" begin="${n * .6}s" repeatCount="indefinite"/></circle>`;
+      h += `<circle cx="${x}" cy="${y}" r="44" fill="${col}" stroke="#fff" stroke-width="12"/>`;
+    });
+    const home = toSvg([350, 215]);
+    h += `<rect x="${home[0] - 40}" y="${home[1] - 40}" width="80" height="80" rx="18" fill="#174C38" stroke="#fff" stroke-width="10"/>`;
+    svg.innerHTML = h;
+  }
+
+  /* ---- drone mission over the north field ---- */
+  const ROUTE = [];
+  function drawDrone() {
+    const svg = document.getElementById('drone-map');
+    const L = 140, R = 1360, T = 120, B = 980, rows = 8;
+    let h = '<rect width="1500" height="1100" fill="#3A7D54"/>';
+    for (let x = 0; x < 1500; x += 30) h += `<rect x="${x}" y="0" width="14" height="1100" fill="#2F6E47"/>`;
+    for (let i = 0; i < rows; i++) {
+      const y = T + (B - T) * (i + .5) / rows;
+      if (i % 2 === 0) ROUTE.push([L, y], [R, y]); else ROUTE.push([R, y], [L, y]);
+    }
+    const cols = 12, rh = (B - T) / rows, cw = (R - L) / cols;
+    h += '<g id="scanned">';
+    for (let i = 0; i < rows; i++) for (let j = 0; j < cols; j++) {
+      const n = .72 + (((i * 7 + j * 13) % 5) - 2) * .015 - (i > 5 && j > 8 ? .07 : 0);
+      h += `<rect class="cell" data-row="${i}" x="${L + j * cw + 4}" y="${T + i * rh + 4}" width="${cw - 8}" height="${rh - 8}" rx="8" fill="${ndviColor(n)}" opacity="0"/>`;
+    }
+    h += '</g>';
+    h += `<polyline points="${pts(ROUTE)}" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="6" stroke-dasharray="18 20"/>`;
+    h += `<g id="drone" transform="translate(${L} ${ROUTE[0][1]})">
+      <path d="M-34 -34 34 34M34 -34 -34 34" stroke="#fff" stroke-width="9" stroke-linecap="round"/>
+      ${[[-34, -34], [34, -34], [-34, 34], [34, 34]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="24" fill="#fff" fill-opacity=".2" stroke="#fff" stroke-width="4"/>`).join('')}
+      <rect x="-20" y="-20" width="40" height="40" rx="9" fill="#fff"/><circle r="9" fill="#174C38"/><circle r="4" fill="#A8D96C"/></g>`;
+    svg.innerHTML = h;
+  }
+  const segLens = () => ROUTE.slice(1).map((p, i) => Math.hypot(p[0] - ROUTE[i][0], p[1] - ROUTE[i][1]));
+  let lens, total, droneT = 0, droneOn = false, last = 0;
+  function droneFrame(ts) {
+    if (!droneOn) return;
+    const dt = last ? Math.min(ts - last, 60) : 16; last = ts;
+    droneT = (droneT + dt / 24000) % 1;
+    placeDrone(droneT);
+    requestAnimationFrame(droneFrame);
+  }
+  function placeDrone(t) {
+    let d = t * total, i = 0;
+    while (i < lens.length - 1 && d > lens[i]) { d -= lens[i]; i++; }
+    const [x, y] = lerp(ROUTE[i], ROUTE[i + 1], Math.min(d / lens[i], 1));
+    document.getElementById('drone').setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
+    const row = Math.floor(i / 2);
+    document.querySelectorAll('#scanned .cell').forEach(c => c.setAttribute('opacity', +c.dataset.row < row ? .85 : 0));
+    const pct = Math.round(t * 100);
+    document.getElementById('d-pct').textContent = pct + '%';
+    document.getElementById('d-prog').style.width = pct + '%';
+    document.getElementById('d-bat').textContent = Math.round(78 - t * 30) + '%';
+  }
+
+  /* ---- analytics trend: 10 weeks from seed start to current value ---- */
+  function drawTrend() {
+    const svg = document.getElementById('trend');
+    const W = 280, H = 170, l = 30, r = 8, t = 10, b = 22;
+    const y = v => t + (1 - (v - .3) / .5) * (H - t - b);
+    const x = i => l + i * (W - l - r) / 9;
+    let h = '';
+    [.3, .5, .7].forEach(v => { h += `<line x1="${l}" x2="${W - r}" y1="${y(v)}" y2="${y(v)}" stroke="#DFE5DC"/><text x="${l - 6}" y="${y(v) + 3}" font-size="9" text-anchor="end" fill="#646E66">${v.toFixed(1)}</text>`; });
+    [1, 5, 10].forEach(w => { h += `<text x="${x(w - 1)}" y="${H - 6}" font-size="9" text-anchor="middle" fill="#646E66">нед ${w}</text>`; });
+    [[.58, .74, '#3E8E4F'], [.61, .52, '#E8A23A'], [.57, .36, '#D95757']].forEach(([a, z, col], k) => {
+      const p = Array.from({ length: 10 }, (_, i) => { const s = i / 9; const wob = Math.sin(i * 1.7 + k) * .012 * (i && i < 9); return [x(i), y(a + (z - a) * (s * s * .4 + s * .6) + wob)]; });
+      h += `<polyline points="${p.map(q => q.map(n => n.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="${col}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`;
+      h += `<circle cx="${p[9][0]}" cy="${p[9][1]}" r="3.6" fill="${col}" stroke="#fff" stroke-width="1.5"/>`;
+    });
+    svg.innerHTML = h;
+  }
+
+  drawFarm(); drawDrone(); drawTrend();
+  lens = segLens(); total = lens.reduce((a, b) => a + b, 0);
+  if (reduce) placeDrone(.62);
+
+  /* ---- navigation ---- */
+  const N = slides.length;
+  document.getElementById('tot').textContent = String(N).padStart(2, '0');
+  let cur = -1;
+
+  function setScreen(name) {
+    document.querySelectorAll('.scr').forEach(s => s.classList.toggle('on', s.dataset.screen === name));
+    document.querySelectorAll('.tabs > div').forEach(tb => tb.classList.toggle('act', tb.dataset.tab === TAB_OF[name]));
+    const wantDrone = name === 'drone' && !reduce;
+    if (wantDrone && !droneOn) { droneOn = true; last = 0; requestAnimationFrame(droneFrame); }
+    if (!wantDrone) droneOn = false;
+  }
+
+  function go(i, fromHash) {
+    i = Math.max(0, Math.min(N - 1, i));
+    if (i === cur) return;
+    const prev = slides[cur];
+    if (prev) { prev.classList.add('leaving'); prev.classList.remove('on'); setTimeout(() => prev.classList.remove('leaving'), 450); }
+    cur = i;
+    slides[i].classList.add('on');
+    const p = POSES[i];
+    phone.style.transform = `translate(${p.x - 170}px, ${p.y - 350}px) rotate(${p.r}deg) scale(${p.s})`;
+    phone.style.opacity = p.o ?? 1;
+    setScreen(p.screen);
+    bg.style.transform = `translateX(${-i * 30}px)`;
+    document.getElementById('cur').textContent = String(i + 1).padStart(2, '0');
+    document.getElementById('secname').textContent = slides[i].dataset.name;
+    document.getElementById('bar').style.width = ((i + 1) / N * 100) + '%';
+    if (!fromHash) { try { history.replaceState(null, '', '#slide-' + (i + 1)); } catch (e) {} }
+  }
+  const fromHash = () => { const m = /^#slide-(\d+)$/.exec(location.hash); return m ? +m[1] - 1 : 0; };
+  addEventListener('hashchange', () => go(fromHash(), true));
+
+  /* first frame without a flight in from the corner */
+  phone.style.transition = 'none';
+  go(fromHash(), true);
+  phone.offsetWidth; phone.style.transition = '';
+
+  const next = () => go(cur + 1), prev = () => go(cur - 1);
+  document.getElementById('next').onclick = next;
+  document.getElementById('prev').onclick = prev;
+  document.getElementById('fs').onclick = () => {
+    const el = document.documentElement;
+    if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+    else el.requestFullscreen?.().catch(() => {});
+  };
+  addEventListener('keydown', e => {
+    if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); next(); }
+    else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); prev(); }
+    else if (e.key === 'Home') go(0); else if (e.key === 'End') go(N - 1);
+    else if (e.key === 'f' || e.key === 'F') document.getElementById('fs').click();
+  });
+  let lock = 0;
+  addEventListener('wheel', e => {
+    e.preventDefault();
+    const d = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+    if (Math.abs(d) < 18 || Date.now() < lock) return;
+    lock = Date.now() + 1000;
+    d > 0 ? next() : prev();
+  }, { passive: false });
+  let tx = null, ty = null;
+  addEventListener('touchstart', e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive: true });
+  addEventListener('touchend', e => {
+    if (tx === null) return;
+    const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) > 40) (Math.abs(dx) > Math.abs(dy) ? dx : dy) < 0 ? next() : prev();
+    tx = null;
+  });
+})();
+</script>

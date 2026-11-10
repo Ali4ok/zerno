@@ -1,8 +1,9 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState, type ReactNode } from "react";
+import { Suspense, useState, type ReactNode } from "react";
 
+import { DocumentTitle } from "@/components/layout/document-title";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ApiError } from "@/lib/api/client";
@@ -26,6 +27,8 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={client}>
       <I18nProvider>
+        {/* Reads the URL, which dynamic routes only know at request time. */}
+        <Suspense fallback={null}><DocumentTitle /></Suspense>
         <AuthProvider>
           <TooltipProvider delayDuration={150}>{children}</TooltipProvider>
           <Toaster position="top-right" richColors closeButton />

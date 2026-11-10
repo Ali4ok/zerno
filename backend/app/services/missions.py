@@ -18,6 +18,7 @@ from app.db import models as m
 from app.domain.flight import MAX_SAMPLE_PHOTOS, PreflightInput, estimate_flight, preflight_checks
 from app.domain.geo import LatLng, centroid, polygon_area_ha, split_quad
 from app.domain.ndvi import classify_ndvi, summarize_ndvi
+from app.services.livestock import count_from_flight
 from app.services.notifications import notify
 from app.services.sample_data import _rng, sample_ndvi_grid, sample_photo
 
@@ -35,7 +36,12 @@ def _preflight(drone: m.Drone, battery_needed: float, altitude_m: float) -> list
     ))
 
 
-def plan_mission(db: Session, drone: m.Drone, field: m.Field, altitude_m: float) -> m.DroneMission:
+def plan_mission(db: Session, drone: m.Drone, field: m.Field, altitude_m: float,
+                 purpose: str = "survey") -> m.DroneMission:
+    if purpose == "livestock" and not db.scalar(
+        select(m.LivestockGroup.id).where(m.LivestockGroup.field_id == field.id).limit(1)
+    ):
+        raise ApiError(409, "no_livestock_on_field")
     home: LatLng = (drone.home_lat, drone.home_lng)
     polygon = [tuple(p) for p in field.coordinates]
     estimate = estimate_flight(polygon, home, altitude_m)
@@ -45,6 +51,7 @@ def plan_mission(db: Session, drone: m.Drone, field: m.Field, altitude_m: float)
         field_id=field.id,
         status="planned",
         flight_data={
+            "purpose": purpose,
             "simulated": bool(adapter and adapter.is_simulated),
             "route": [list(p) for p in estimate.route],
             "home": list(home),
@@ -173,7 +180,12 @@ def ingest_results(db: Session, mission: m.DroneMission, photos: list[LatLng]) -
             gps_coordinates=list(position), source="mission", is_simulated=True,
         ))
 
-    if data.get("progress", 0) >= MIN_PROGRESS_FOR_INDEX:
+    if data.get("purpose") == "livestock":
+        # A partial flight would miss animals, so only a full pass changes the count.
+        if mission.status == "completed":
+            mission.flight_data = {**data, "livestock_counts": count_from_flight(db, mission, owner)}
+            return
+    elif data.get("progress", 0) >= MIN_PROGRESS_FOR_INDEX:
         update_index(db, field, mission, mission.id, owner)
 
     if mission.status == "completed":

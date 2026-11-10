@@ -16,7 +16,11 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) router.replace("/login");
+    // Signed-out visitors land in the demo farm on the page they opened. Signing out goes to
+    // /login without this, so a real account is always one step away.
+    if (!loading && !user) {
+      router.replace(`/login?demo=1&next=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+    }
   }, [loading, user, router]);
 
   if (!user) {

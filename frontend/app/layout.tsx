@@ -10,8 +10,8 @@ const inter = Inter({
   subsets: ["latin", "cyrillic", "cyrillic-ext"],
 });
 
+// No title here: DocumentTitle sets it per page and language.
 export const metadata: Metadata = {
-  title: "ZERNO · Smart Agriculture. Smarter Future.",
   description: "AI-powered smart agriculture platform for farmers in Kazakhstan.",
   appleWebApp: { capable: true, title: "ZERNO", statusBarStyle: "default" },
   icons: { apple: "/apple-touch-icon.png" },

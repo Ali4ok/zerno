@@ -218,7 +218,14 @@ class TestDemoAssistant:
     @pytest.mark.parametrize("lang", LANGUAGES)
     def test_answers_use_real_farm_data(self, lang):
         answer = DemoAssistant().reply(self.CONTEXT, [], "Which field requires additional inspection?", lang)
-        assert "Bad" in answer and "0.30" in answer
+        assert "Bad" in answer and ("0.30" if lang == "en" else "0,30") in answer
+
+    @pytest.mark.parametrize("lang,unit", [("en", "60 ha"), ("ru", "60 га"), ("kk", "60 га")])
+    def test_overview_uses_local_area_unit(self, lang, unit):
+        answer = DemoAssistant().reply(self.CONTEXT, [], "hello", lang)
+        assert unit in answer
+        if lang != "en":
+            assert " ha" not in answer
 
     def test_farm_without_fields(self):
         context = {**self.CONTEXT, "fields": []}
