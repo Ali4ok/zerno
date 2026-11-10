@@ -97,6 +97,9 @@ export function Topbar() {
         </Select>
       )}
       {user?.is_demo && <DemoBadge label={t("topbar.demoAccount")} tip={t("topbar.demoTip")} className="hidden sm:inline-flex" />}
+      {user?.is_demo && (
+        <Button variant="link" size="sm" className="hidden px-1 text-brand-2 md:inline-flex" onClick={signOut}>{t("topbar.ownAccount")}</Button>
+      )}
 
       <div className="ml-auto flex items-center gap-1">
         <LanguageSwitcher />

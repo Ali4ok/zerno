@@ -30,6 +30,7 @@ CATALOG: dict[str, dict[str, str]] = {
     "crop.canola": {"en": "Canola", "ru": "Рапс", "kk": "Рапс"},
     "crop.sunflower": {"en": "Sunflower", "ru": "Подсолнечник", "kk": "Күнбағыс"},
     "crop.flax": {"en": "Flax", "ru": "Лён", "kk": "Зығыр"},
+    "crop.pasture": {"en": "Pasture", "ru": "Пастбище", "kk": "Жайылым"},
     "crop.other": {"en": "Other crop", "ru": "Другая культура", "kk": "Басқа дақыл"},
     "health.healthy": {"en": "Healthy", "ru": "Здоровое", "kk": "Сау"},
     "health.attention": {"en": "Needs attention", "ru": "Требует внимания", "kk": "Назар аударуды қажет етеді"},
@@ -37,6 +38,7 @@ CATALOG: dict[str, dict[str, str]] = {
     "health.unknown": {"en": "Not checked yet", "ru": "Ещё не проверено", "kk": "Әлі тексерілмеген"},
 
     # --- Seeded names ---
+    "field.pasture": {"en": "River Pasture", "ru": "Пастбище у реки", "kk": "Өзен жағасындағы жайылым"},
     "field.north": {"en": "North Field", "ru": "Северное поле", "kk": "Солтүстік алқап"},
     "field.river": {"en": "River Field", "ru": "Приречное поле", "kk": "Өзен жағасы алқабы"},
     "field.east": {"en": "East Field", "ru": "Восточное поле", "kk": "Шығыс алқабы"},
@@ -72,6 +74,20 @@ CATALOG: dict[str, dict[str, str]] = {
     "notif.health_drop.msg": {"en": "{field} has a low vegetation index. Inspect it within 2 days.", "ru": "У поля «{field}» низкий индекс растительности. Осмотрите в течение 2 дней.", "kk": "«{field}» алқабының өсімдік индексі төмен. 2 күн ішінде тексеріңіз."},
     "notif.welcome.title": {"en": "Welcome to ZERNO", "ru": "Добро пожаловать в ZERNO", "kk": "ZERNO-ға қош келдіңіз"},
     "notif.welcome.msg": {"en": "Your demo farm is ready. Start with the dashboard.", "ru": "Демо-хозяйство готово. Начните с главной панели.", "kk": "Демо-шаруашылық дайын. Басты панельден бастаңыз."},
+
+    # --- Livestock ---
+    "error.livestock_not_enough": {"en": "Only {available} animals are counted in this group.", "ru": "В этой группе учтено только {available} голов.", "kk": "Бұл топта тек {available} бас есепте тұр."},
+    "error.livestock_zero_quantity": {"en": "Enter how many animals.", "ru": "Укажите количество голов.", "kk": "Бас санын көрсетіңіз."},
+    "error.no_livestock_on_field": {"en": "No animal groups graze on this field. Assign a group to it on the Livestock page first.", "ru": "На этом поле не пасётся ни одна группа животных. Сначала привяжите группу к полю на странице «Животные».", "kk": "Бұл алқапта бірде-бір мал тобы жайылмайды. Алдымен «Мал» бетінде топты алқапқа байлаңыз."},
+    "notif.livestock_done.title": {"en": "Animals counted", "ru": "Животные пересчитаны", "kk": "Мал саналды"},
+    "notif.livestock_done.msg": {"en": "The drone counted {total} animals on {field}. Everything matches the records.", "ru": "Дрон насчитал {total} голов на поле «{field}». Всё сходится с учётом.", "kk": "Дрон «{field}» алқабында {total} бас санады. Бәрі есеппен сәйкес."},
+    "notif.livestock_diff.title": {"en": "Animal count changed", "ru": "Число животных изменилось", "kk": "Мал саны өзгерді"},
+    "notif.livestock_diff.msg": {"en": "The drone counted {total} animals on {field}, {diff} against the records. Check the herd.", "ru": "Дрон насчитал {total} голов на поле «{field}», расхождение с учётом {diff}. Проверьте стадо.", "kk": "Дрон «{field}» алқабында {total} бас санады, есеппен айырмашылық {diff}. Табынды тексеріңіз."},
+    "herd.dairy": {"en": "Dairy herd", "ru": "Дойное стадо", "kk": "Сауын табыны"},
+    "herd.beef": {"en": "Beef cattle", "ru": "Мясной скот", "kk": "Етті ірі қара"},
+    "herd.sheep": {"en": "Main flock", "ru": "Основная отара", "kk": "Негізгі отар"},
+    "herd.horses": {"en": "Horse herd", "ru": "Табун лошадей", "kk": "Жылқы үйірі"},
+    "herd.hens": {"en": "Laying hens", "ru": "Куры-несушки", "kk": "Жұмыртқалайтын тауықтар"},
 
     # --- Emergencies ---
     "error.emergency_closed": {"en": "This emergency is already closed.", "ru": "Эта экстренная ситуация уже закрыта.", "kk": "Бұл төтенше жағдай жабылған."},

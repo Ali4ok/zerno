@@ -89,7 +89,11 @@ Keys under `public/` are served at `/media` by unguessable filenames. Keys under
 
 ## Data model
 
-Core entities match the product spec: User, Farm, Field, Drone, DroneMission, Image, AIAnalysis, Notification, FarmerAction. Added to support the features: Zone, Anomaly, NdviRecord, ChatMessage, Report, PasswordResetToken.
+Core entities match the product spec: User, Farm, Field, Drone, DroneMission, Image, AIAnalysis, Notification, FarmerAction. Added to support the features: Zone, Anomaly, NdviRecord, ChatMessage, Report, PasswordResetToken, Emergency, LivestockGroup, LivestockEvent.
+
+A livestock group can be assigned to a pasture. A mission planned with `purpose: "livestock"` flies over that field, and when it completes, `ingest_results` calls `livestock.count_from_flight`, which writes a `drone_count` event for every group on the field, with the mission and the detector's confidence. Only a completed flight counts, because a partial one would miss animals. The number itself comes from `simulated_count` until a trained livestock detector is connected. A drone can't tell why a number changed, so births, purchases, sales and deaths stay manual.
+
+A livestock group's `head_count` only changes through `services/livestock.apply_event`, which writes a `LivestockEvent` (birth, purchase, sale, death or recount) with the signed change and the new total. The count can't go below zero, and editing a group never touches its count, so the history always adds up to the current number.
 
 Deleting a user or farm cascades through the database. Images and analyses keep existing if their field is deleted, with the link set to null.
 

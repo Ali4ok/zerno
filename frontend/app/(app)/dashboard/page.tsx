@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  AlertTriangle, Bot, CheckCircle2, ChevronRight, Cloud, CloudRain, CloudSun, Droplets, Plane, Sprout, Sun, Wind, X,
+  AlertTriangle, Bot, CheckCircle2, ChevronRight, Cloud, CloudRain, CloudSun, Droplets, PawPrint, Plane, Sprout, Sun, Wind, X,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -169,6 +169,15 @@ function Content({ farm }: { farm: Farm }) {
         <WeatherPanel weather={data.weather} />
         <LatestMission mission={data.latest_mission} />
       </div>
+      <Link href="/livestock" className="mt-4 flex items-center gap-3 rounded-lg border bg-card p-4 hover:bg-muted">
+        <PawPrint className="size-5 shrink-0 text-brand-2" />
+        <span className="flex-1">
+          {data.stats.livestock_total > 0 ? (
+            <><span className="font-medium">{t("livestock.dashTitle")}:</span> {format.number(data.stats.livestock_total)} {t("livestock.unit")}</>
+          ) : t("livestock.dashEmpty")}
+        </span>
+        <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+      </Link>
       <Link href="/assistant" className="mt-4 flex items-center gap-3 rounded-lg border bg-card p-4 hover:bg-muted">
         <Bot className="size-5 shrink-0 text-brand-2" />
         <span className="flex-1">{t("dash.askAssistant")}</span>

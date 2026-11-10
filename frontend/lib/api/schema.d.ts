@@ -578,6 +578,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/farms/{farm_id}/livestock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Livestock */
+        get: operations["livestock_api_farms__farm_id__livestock_get"];
+        put?: never;
+        /** Create Group */
+        post: operations["create_group_api_farms__farm_id__livestock_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/livestock/{group_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Group */
+        delete: operations["delete_group_api_livestock__group_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Group */
+        patch: operations["update_group_api_livestock__group_id__patch"];
+        trace?: never;
+    };
+    "/api/livestock/{group_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record Event */
+        post: operations["record_event_api_livestock__group_id__events_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/notifications": {
         parameters: {
             query?: never;
@@ -866,7 +919,7 @@ export interface components {
              * Crop Type
              * @enum {string}
              */
-            crop_type: "wheat" | "barley" | "canola" | "sunflower" | "flax" | "other";
+            crop_type: "wheat" | "barley" | "canola" | "sunflower" | "flax" | "pasture" | "other";
             /** Field Id */
             field_id?: string | null;
         };
@@ -1065,6 +1118,22 @@ export interface components {
             /** Activity */
             activity: components["schemas"]["ActivityOut"][];
         };
+        /** DroneCountOut */
+        DroneCountOut: {
+            /** Counted */
+            counted: number;
+            /** Confidence */
+            confidence: number | null;
+            /** Mission Id */
+            mission_id: string | null;
+            /** Is Simulated */
+            is_simulated: boolean;
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+        };
         /** DroneOut */
         DroneOut: {
             /** Id */
@@ -1220,7 +1289,7 @@ export interface components {
              * @default wheat
              * @enum {string}
              */
-            main_crop: "wheat" | "barley" | "canola" | "sunflower" | "flax" | "other";
+            main_crop: "wheat" | "barley" | "canola" | "sunflower" | "flax" | "pasture" | "other";
         };
         /** FarmOut */
         FarmOut: {
@@ -1278,7 +1347,7 @@ export interface components {
              * Crop Type
              * @enum {string}
              */
-            crop_type: "wheat" | "barley" | "canola" | "sunflower" | "flax" | "other";
+            crop_type: "wheat" | "barley" | "canola" | "sunflower" | "flax" | "pasture" | "other";
             /** Crop Label */
             crop_label: string;
             /** Coordinates */
@@ -1329,7 +1398,7 @@ export interface components {
              * Crop Type
              * @enum {string}
              */
-            crop_type: "wheat" | "barley" | "canola" | "sunflower" | "flax" | "other";
+            crop_type: "wheat" | "barley" | "canola" | "sunflower" | "flax" | "pasture" | "other";
             /** Latitude */
             latitude: number;
             /** Longitude */
@@ -1358,7 +1427,7 @@ export interface components {
              * Crop Type
              * @enum {string}
              */
-            crop_type: "wheat" | "barley" | "canola" | "sunflower" | "flax" | "other";
+            crop_type: "wheat" | "barley" | "canola" | "sunflower" | "flax" | "pasture" | "other";
             /** Crop Label */
             crop_label: string;
             /** Coordinates */
@@ -1458,6 +1527,145 @@ export interface components {
              */
             sim_speed: "slow" | "normal" | "fast";
         };
+        /** LivestockCountOut */
+        LivestockCountOut: {
+            /** Group Id */
+            group_id: string;
+            /** Group Name */
+            group_name: string;
+            /** Species */
+            species: string;
+            /** Expected */
+            expected: number;
+            /** Counted */
+            counted: number;
+            /** Confidence */
+            confidence: number;
+        };
+        /** LivestockEventIn */
+        LivestockEventIn: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "birth" | "purchase" | "sale" | "death" | "recount";
+            /** Quantity */
+            quantity: number;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+        };
+        /** LivestockEventOut */
+        LivestockEventOut: {
+            /** Id */
+            id: string;
+            /** Group Id */
+            group_id: string;
+            /** Group Name */
+            group_name: string;
+            /**
+             * Species
+             * @enum {string}
+             */
+            species: "cattle" | "sheep" | "goat" | "horse" | "camel" | "poultry" | "other";
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "birth" | "purchase" | "sale" | "death" | "recount" | "drone_count";
+            /** Change */
+            change: number;
+            /** Count After */
+            count_after: number;
+            /** Note */
+            note: string;
+            /** Mission Id */
+            mission_id: string | null;
+            /** Confidence */
+            confidence: number | null;
+            /** Is Simulated */
+            is_simulated: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** LivestockGroupIn */
+        LivestockGroupIn: {
+            /**
+             * Species
+             * @enum {string}
+             */
+            species: "cattle" | "sheep" | "goat" | "horse" | "camel" | "poultry" | "other";
+            /** Name */
+            name: string;
+            /** Field Id */
+            field_id?: string | null;
+            /**
+             * Head Count
+             * @default 0
+             */
+            head_count: number;
+            /**
+             * Notes
+             * @default
+             */
+            notes: string;
+        };
+        /** LivestockGroupOut */
+        LivestockGroupOut: {
+            /** Id */
+            id: string;
+            /**
+             * Species
+             * @enum {string}
+             */
+            species: "cattle" | "sheep" | "goat" | "horse" | "camel" | "poultry" | "other";
+            /** Name */
+            name: string;
+            /** Head Count */
+            head_count: number;
+            /** Notes */
+            notes: string;
+            /** Field Id */
+            field_id: string | null;
+            /** Field Name */
+            field_name: string | null;
+            last_drone_count: components["schemas"]["DroneCountOut"] | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * LivestockGroupUpdate
+         * @description Name and notes only. The count changes through events, so its history stays complete.
+         */
+        LivestockGroupUpdate: {
+            /** Species */
+            species?: ("cattle" | "sheep" | "goat" | "horse" | "camel" | "poultry" | "other") | null;
+            /** Name */
+            name?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Field Id */
+            field_id?: string | null;
+        };
+        /** LivestockOut */
+        LivestockOut: {
+            /** Total */
+            total: number;
+            /** By Species */
+            by_species: components["schemas"]["SpeciesCount"][];
+            /** Groups */
+            groups: components["schemas"]["LivestockGroupOut"][];
+            /** Recent Events */
+            recent_events: components["schemas"]["LivestockEventOut"][];
+        };
         /** LoginIn */
         LoginIn: {
             /**
@@ -1493,6 +1701,11 @@ export interface components {
         MissionDetailOut: {
             /** Id */
             id: string;
+            /**
+             * Purpose
+             * @enum {string}
+             */
+            purpose: "survey" | "livestock";
             /** Drone Id */
             drone_id: string;
             /** Drone Model */
@@ -1559,6 +1772,8 @@ export interface components {
             return_reason: string | null;
             /** Preflight */
             preflight: components["schemas"]["PreflightCheck"][];
+            /** Livestock Counts */
+            livestock_counts: components["schemas"]["LivestockCountOut"][];
             /** Images */
             images: components["schemas"]["ImageOut"][];
         };
@@ -1566,6 +1781,11 @@ export interface components {
         MissionOut: {
             /** Id */
             id: string;
+            /**
+             * Purpose
+             * @enum {string}
+             */
+            purpose: "survey" | "livestock";
             /** Drone Id */
             drone_id: string;
             /** Drone Model */
@@ -1632,6 +1852,8 @@ export interface components {
             return_reason: string | null;
             /** Preflight */
             preflight: components["schemas"]["PreflightCheck"][];
+            /** Livestock Counts */
+            livestock_counts: components["schemas"]["LivestockCountOut"][];
         };
         /** MissionPlanIn */
         MissionPlanIn: {
@@ -1644,6 +1866,12 @@ export interface components {
              * @default 60
              */
             altitude_m: number;
+            /**
+             * Purpose
+             * @default survey
+             * @enum {string}
+             */
+            purpose: "survey" | "livestock";
         };
         /** MissionStartIn */
         MissionStartIn: {
@@ -1848,6 +2076,18 @@ export interface components {
             /** Detail */
             detail: string;
         };
+        /** SpeciesCount */
+        SpeciesCount: {
+            /**
+             * Species
+             * @enum {string}
+             */
+            species: "cattle" | "sheep" | "goat" | "horse" | "camel" | "poultry" | "other";
+            /** Head Count */
+            head_count: number;
+            /** Groups */
+            groups: number;
+        };
         /** StatsOut */
         StatsOut: {
             /** Total Area */
@@ -1858,6 +2098,8 @@ export interface components {
             avg_ndvi: number | null;
             /** Open Anomalies */
             open_anomalies: number;
+            /** Livestock Total */
+            livestock_total: number;
         };
         /** SymptomOut */
         SymptomOut: {
@@ -3297,6 +3539,179 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EmergencyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    livestock_api_farms__farm_id__livestock_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "accept-language"?: string | null;
+            };
+            path: {
+                farm_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LivestockOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_group_api_farms__farm_id__livestock_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "accept-language"?: string | null;
+            };
+            path: {
+                farm_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LivestockGroupIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LivestockGroupOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_group_api_livestock__group_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_group_api_livestock__group_id__patch: {
+        parameters: {
+            query?: never;
+            header?: {
+                "accept-language"?: string | null;
+            };
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LivestockGroupUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LivestockGroupOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_event_api_livestock__group_id__events_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "accept-language"?: string | null;
+            };
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LivestockEventIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LivestockEventOut"];
                 };
             };
             /** @description Validation Error */

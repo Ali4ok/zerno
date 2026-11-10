@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field as F, field_validato
 
 Language = Literal["en", "ru", "kk"]
 Health = Literal["healthy", "attention", "critical", "unknown"]
-CropType = Literal["wheat", "barley", "canola", "sunflower", "flax", "other"]
+CropType = Literal["wheat", "barley", "canola", "sunflower", "flax", "pasture", "other"]
 Severity = Literal["info", "success", "warning", "critical"]
 ReportType = Literal["field_monitoring", "drone_mission", "crop_health", "ai_analysis"]
 LatLngPair = tuple[float, float]
@@ -236,10 +236,15 @@ class DroneOut(Orm):
     last_mission_at: datetime | None
 
 
+MissionPurpose = Literal["survey", "livestock"]
+
+
 class MissionPlanIn(BaseModel):
     drone_id: str
     field_id: str
     altitude_m: float = F(default=60, ge=20, le=120)
+    # survey: crop health and NDVI. livestock: count the animals grazing on the field.
+    purpose: MissionPurpose = "survey"
 
 
 class MissionStartIn(BaseModel):
@@ -257,8 +262,18 @@ class ImageOut(BaseModel):
     mission_id: str | None
 
 
+class LivestockCountOut(BaseModel):
+    group_id: str
+    group_name: str
+    species: str
+    expected: int
+    counted: int
+    confidence: float
+
+
 class MissionOut(BaseModel):
     id: str
+    purpose: MissionPurpose
     drone_id: str
     drone_model: str
     field_id: str
@@ -283,6 +298,7 @@ class MissionOut(BaseModel):
     photos_taken: int
     return_reason: str | None
     preflight: list[PreflightCheck]
+    livestock_counts: list[LivestockCountOut]
 
 
 class MissionDetailOut(MissionOut):
@@ -366,6 +382,7 @@ class StatsOut(BaseModel):
     field_count: int
     avg_ndvi: float | None
     open_anomalies: int
+    livestock_total: int
 
 
 class AlertOut(BaseModel):
@@ -494,6 +511,85 @@ class EmergencyOut(BaseModel):
     created_at: datetime
     resolved_at: datetime | None
     log: list[EmergencyLogOut]
+
+
+# --- Livestock ---
+Species = Literal["cattle", "sheep", "goat", "horse", "camel", "poultry", "other"]
+LivestockEventKind = Literal["birth", "purchase", "sale", "death", "recount", "drone_count"]
+ManualEventKind = Literal["birth", "purchase", "sale", "death", "recount"]
+MAX_HEADS = 1_000_000
+
+
+class LivestockGroupIn(BaseModel):
+    species: Species
+    name: str = F(min_length=1, max_length=120)
+    field_id: str | None = None
+    head_count: int = F(default=0, ge=0, le=MAX_HEADS)
+    notes: str = F(default="", max_length=2000)
+
+
+class LivestockGroupUpdate(BaseModel):
+    """Name and notes only. The count changes through events, so its history stays complete."""
+
+    species: Species | None = None
+    name: str | None = F(default=None, min_length=1, max_length=120)
+    notes: str | None = F(default=None, max_length=2000)
+    field_id: str | None = None  # send "" to take the group off its pasture
+
+
+class LivestockEventIn(BaseModel):
+    kind: ManualEventKind  # drone counts come only from flights
+    # How many animals were born, bought, sold or died. For a recount, the new total.
+    quantity: int = F(ge=0, le=MAX_HEADS)
+    note: str = F(default="", max_length=300)
+
+
+class LivestockEventOut(BaseModel):
+    id: str
+    group_id: str
+    group_name: str
+    species: Species
+    kind: LivestockEventKind
+    change: int
+    count_after: int
+    note: str
+    mission_id: str | None
+    confidence: float | None
+    is_simulated: bool
+    created_at: datetime
+
+
+class DroneCountOut(BaseModel):
+    counted: int
+    confidence: float | None
+    mission_id: str | None
+    is_simulated: bool
+    at: datetime
+
+
+class LivestockGroupOut(BaseModel):
+    id: str
+    species: Species
+    name: str
+    head_count: int
+    notes: str
+    field_id: str | None
+    field_name: str | None
+    last_drone_count: DroneCountOut | None
+    updated_at: datetime
+
+
+class SpeciesCount(BaseModel):
+    species: Species
+    head_count: int
+    groups: int
+
+
+class LivestockOut(BaseModel):
+    total: int
+    by_species: list[SpeciesCount]
+    groups: list[LivestockGroupOut]
+    recent_events: list[LivestockEventOut]
 
 
 # --- Notifications, assistant, reports, system ---

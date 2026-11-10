@@ -1,5 +1,5 @@
 import {
-  BarChart3, Bot, FileText, LayoutDashboard, Leaf, Map, Plane, Settings, Sprout, type LucideIcon,
+  BarChart3, Bot, FileText, LayoutDashboard, Leaf, Map, PawPrint, Plane, Settings, Sprout, type LucideIcon,
 } from "lucide-react";
 
 import type { TKey } from "@/lib/i18n";
@@ -16,6 +16,7 @@ export const PRIMARY_NAV: NavItem[] = [
 
 /** Everything else, grouped so the first look at the app stays calm. */
 export const MORE_NAV: NavItem[] = [
+  { href: "/livestock", label: "nav.livestock", short: "nav.livestock", icon: PawPrint },
   { href: "/map", label: "nav.map", short: "nav.map", icon: Map },
   { href: "/assistant", label: "nav.assistant", short: "nav.assistant", icon: Bot },
   { href: "/analytics", label: "nav.analytics", short: "nav.analytics", icon: BarChart3 },

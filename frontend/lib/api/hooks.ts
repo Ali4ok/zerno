@@ -136,7 +136,7 @@ function useMissionMutation<V>(fn: (vars: V) => Promise<T.Mission>) {
 }
 
 export const usePlanMission = () =>
-  useMissionMutation((body: { drone_id: string; field_id: string; altitude_m: number }) =>
+  useMissionMutation((body: { drone_id: string; field_id: string; altitude_m: number; purpose: T.MissionPurpose }) =>
     api<T.Mission>("/missions", { method: "POST", body }),
   );
 
@@ -317,3 +317,33 @@ export const useEmergencyEvent = () =>
 
 export const useResolveEmergency = () =>
   useEmergencyMutation((id: string) => api<T.Emergency>(`/emergencies/${id}/resolve`, { method: "POST" }));
+
+export function useLivestock(farmId?: string) {
+  return useQuery({
+    queryKey: ["farm", farmId, "livestock"],
+    queryFn: () => api<T.Livestock>(`/farms/${farmId}/livestock`),
+    enabled: !!farmId,
+  });
+}
+
+function useLivestockMutation<V, R>(fn: (vars: V) => Promise<R>) {
+  const client = useQueryClient();
+  return useMutation({ mutationFn: fn, onSuccess: () => client.invalidateQueries({ queryKey: ["farm"] }) });
+}
+
+export const useSaveLivestockGroup = (farmId: string) =>
+  useLivestockMutation(({ id, body }: { id?: string; body: T.LivestockGroupIn }) =>
+    id
+      ? api<T.LivestockGroup>(`/livestock/${id}`, {
+        method: "PATCH", body: { species: body.species, name: body.name, notes: body.notes, field_id: body.field_id ?? "" },
+      })
+      : api<T.LivestockGroup>(`/farms/${farmId}/livestock`, { method: "POST", body }),
+  );
+
+export const useDeleteLivestockGroup = () =>
+  useLivestockMutation((id: string) => api(`/livestock/${id}`, { method: "DELETE" }));
+
+export const useLivestockEvent = () =>
+  useLivestockMutation(({ id, body }: { id: string; body: T.LivestockEventIn }) =>
+    api<T.LivestockEvent>(`/livestock/${id}/events`, { method: "POST", body }),
+  );
