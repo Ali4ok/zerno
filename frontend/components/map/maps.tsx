@@ -1,9 +1,10 @@
 "use client";
 
+import { LeafletContext, createLeafletContext, type LeafletContextInterface } from "@react-leaflet/core";
 import L from "leaflet";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
-  CircleMarker, MapContainer, Marker, Polygon, Polyline, TileLayer, Tooltip, useMap,
+  CircleMarker, Marker, Polygon, Polyline, TileLayer, Tooltip, useMap,
 } from "react-leaflet";
 
 import type { Field, Health, MapData, Mission } from "@/lib/api/types";
@@ -45,17 +46,50 @@ function FitBounds({ points }: { points: LatLng[] }) {
   return null;
 }
 
+/**
+ * Creates a new Leaflet map every time its effects run, instead of once per DOM node.
+ *
+ * Next.js keeps visited pages alive but hidden (`cacheComponents`), which disconnects and
+ * reconnects effects without remounting. react-leaflet's MapContainer removes its map on hide
+ * and never builds a new one, so a page opened again showed an empty map, and the next hide
+ * failed with "Map container is being reused by another instance".
+ */
+function LiveMap({ center, zoom, children }: { center: LatLng; zoom: number; children: ReactNode }) {
+  const node = useRef<HTMLDivElement>(null);
+  const [context, setContext] = useState<LeafletContextInterface | null>(null);
+
+  useEffect(() => {
+    if (!node.current) return;
+    const map = L.map(node.current, { scrollWheelZoom: true }).setView(center, zoom);
+    // The map needs the mounted node, so it can only be created here.
+    setContext(createLeafletContext(map));
+    return () => {
+      // Drop the layers first, so none of them reattach to this map when the page is shown again.
+      setContext(null);
+      map.remove();
+    };
+    // Only the starting view. FitBounds moves the map when the data changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <div ref={node} className="h-full w-full bg-muted">
+      {context && <LeafletContext value={context}>{children}</LeafletContext>}
+    </div>
+  );
+}
+
 function BaseMap({ points, base = "satellite", className, children }: {
   points: LatLng[]; base?: keyof typeof TILES; className?: string; children: ReactNode;
 }) {
   const first = points[0] ?? [51.7, 71.1];
   return (
     <div className={cn("isolate overflow-hidden rounded-lg border bg-muted", className)}>
-      <MapContainer center={first} zoom={14} className="h-full w-full bg-muted" scrollWheelZoom>
+      <LiveMap center={first} zoom={14}>
         <TileLayer key={base} {...TILES[base]} maxZoom={19} />
         <FitBounds points={points} />
         {children}
-      </MapContainer>
+      </LiveMap>
     </div>
   );
 }
