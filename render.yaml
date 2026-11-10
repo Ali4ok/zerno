@@ -1,0 +1,48 @@
+# Render Blueprint: free PostgreSQL, the API and the website.
+# Render → New → Blueprint → pick this repository and the "deploy" branch.
+
+databases:
+  - name: zerno-db
+    plan: free
+    databaseName: zerno
+    user: zerno
+    postgresMajorVersion: "16"
+
+services:
+  - type: web
+    name: zerno-api-ali4ok
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    # Every start migrates and restores the demo farm, so visitors always see it complete.
+    startCommand: alembic upgrade head && python -m app.seed && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: zerno-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DEMO_MODE
+        value: "true"
+      - key: EXPOSE_RESET_TOKENS
+        value: "false"
+
+  - type: web
+    name: zerno-ali4ok
+    runtime: node
+    plan: free
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # The website forwards /api and /media here. If Render gives the API another address,
+      # change this value in the dashboard and redeploy the website.
+      - key: API_PROXY_TARGET
+        value: https://zerno-api-ali4ok.onrender.com
